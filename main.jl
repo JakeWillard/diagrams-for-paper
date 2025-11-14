@@ -1,2 +1,2 @@
 using Vizagrams
-
+using LaTeXStrings
