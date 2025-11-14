@@ -24,7 +24,8 @@ struct FiniteDifferenceLines <: Mark
 end
 
 
-struct ZoomInRight <: Mark
+struct ZoomIn <: Mark
     mu :: Float64
     scale :: Float64
+    displacement :: Vector{Float64}
 end
