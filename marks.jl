@@ -130,16 +130,79 @@ end
 
 
 
+# ===============================
+# ===============================
 
-struct Schema <: Mark 
-    μ :: Float64
-    δ :: Float64
+
+struct CScaleCurve <: Mark
+    r :: Float64
+    ϕ :: Float64
+    w :: Float64
 end
 
-function ζ(sc::Schema)
+function ζ(csc::CScaleCurve)
 
-    output = DiffusionRegion(μ, δ)
-    output += Separatrix(μ, 1.0, :red)
+    Grrr(r) = 1/(2*r*(1-r))
+    Grtt(r) = 1 - r
+    Gtrt(r) = 1/r
+
+    rs = csc.r*ones(2)
+    ts = zeros(2)
+
+    rdots = sqrt(1 - 1/csc.r)*cos(csc.ϕ)*ones(2)
+    tdots = (sin(csc.ϕ)/csc.r)*ones(2)
+
+    pts = []
+
+    l = csc.r^(3/2) / 2.0
+    ds = l/500
+    for i=1:500
+        rddots = -Grrr.(rs).*(rdots.^2) - Grtt.(rs).*(tdots.^2)
+        tddots = -2*Gtrt.(rs).*rdots.*tdots
+        rdots[2] = rdots[1] + ds*(rddots[1] + rddots[2])/2
+        tdots[2] =  tdots[1] + ds*(tddots[1] + tddots[2])/2
+        rs[2] = rs[1] + ds*(rdots[1] + rdots[2])/2
+        ts[2] = ts[1] + ds*(tdots[1] + tdots[2])/2
+
+        push!(pts, (rs[2]*cos(ts[2]), rs[2]*sin(ts[2])))
+
+        if rs[2] <= 1.0
+            break
+        end
+
+        rs[1] = rs[2]
+        ts[1] = ts[2]
+        rdots[1] = rdots[2]
+        tdots[1] = tdots[2]
+    end
+
+    return Trail(pts=pts, ws=csc.w)
+end
+
+
+struct CurvatureScales <: Mark
+    rmin :: Float64
+    rmax :: Float64
+    nr :: Int64
+    nl :: Int64
+end
+CurvatureScales(rmin, rmax; nr=4, nl=6) = CurvatureScales(rmin, rmax, nr, nl)
+
+function ζ(cs::CurvatureScales)
+
     
+    output = Circle()
 
+    thetas = LinRange(0.0, 2*π, cs.nr+1)[1:end-1]
+    rs = LinRange(cs.rmin, cs.rmax, cs.nr)
+
+    for i=1:cs.nr
+        for ϕ in LinRange(0.0, 2*π, cs.nl+1)[1:end-1]
+            output += R(thetas[i])*CScaleCurve(rs[i], ϕ, 0.01)
+        end
+    end
+
+    return output
 end
+
+

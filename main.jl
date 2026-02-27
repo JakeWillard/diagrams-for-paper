@@ -5,5 +5,4 @@ using LaTeXStrings
 
 include("./marks.jl")
 
-
-draw(WorldLine(1.0; Δt=2, V=0.5))
+draw(CurvatureScales(1.4, 3.0))
