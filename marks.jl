@@ -128,33 +128,87 @@ function ζ(hd::HorizontalDist)
 end
 
 
+# ===============================
+# ===============================
+
+struct RGeodesic <: Mark
+    K :: Float64
+    d :: Float64
+end
+
+function ζ(rg::RGeodesic)
+
+    sty = S(:strokeDasharray => 3)
+
+    if rg.K == 0
+        return sty*Line([-1.0, 1.0], [rg.d, rg.d])
+    end
+
+    r = 1/sqrt(abs(rg.K))
+    θ = atan(1/r)
+
+    if rg.K > 0
+        output = sty*Arc(r, r, [0.0, rg.d - r], 0.0, π/2-θ, π/2+θ)
+    else
+        output = sty*Arc(r, r, [0.0, r + rg.d], 0.0, 3*π/2-θ, 3*π/2+θ)
+    end
+
+    return output
+end
+
+
+
+struct GeodesicGrid <: Mark
+    K :: Float64
+    n :: Int64
+end
+GeodesicGrid(K; n=4) = GeodesicGrid(K, n)
+
+function ζ(gd::GeodesicGrid)
+
+
+    if gd.K == 0.0
+        crv = S(:strokeDasharray => 3)*Line([-1.0, 1.0], [0.0, 0.0])
+    else
+        crv = S(:strokeDasharray => 3)*T(0.0, -1.0)*Arc(abs(gd.K)^(-1/3), 1.0, [0.0, 0.0], 0.0, 0.0, π)
+    end
+
+
+    return crv
+end
+
+
+
+
+
+
 
 
 # ===============================
 # ===============================
 
 
-struct CScaleCurve <: Mark
+struct SGeodesic <: Mark
     r :: Float64
-    ϕ :: Float64
+    θ :: Float64
     w :: Float64
 end
 
-function ζ(csc::CScaleCurve)
+function ζ(sg::SGeodesic)
 
     Grrr(r) = 1/(2*r*(1-r))
     Grtt(r) = 1 - r
     Gtrt(r) = 1/r
 
-    rs = csc.r*ones(2)
+    rs = sg.r*ones(2)
     ts = zeros(2)
 
-    rdots = sqrt(1 - 1/csc.r)*cos(csc.ϕ)*ones(2)
-    tdots = (sin(csc.ϕ)/csc.r)*ones(2)
+    rdots = sqrt(1 - 1/sg.r)*cos(sg.θ)*ones(2)
+    tdots = (sin(sg.θ)/sg.r)*ones(2)
 
     pts = []
 
-    l = csc.r^(3/2) / 2.0
+    l = sg.r^(3/2) / 2.0
     ds = l/500
     for i=1:500
         rddots = -Grrr.(rs).*(rdots.^2) - Grtt.(rs).*(tdots.^2)
@@ -176,33 +230,51 @@ function ζ(csc::CScaleCurve)
         tdots[1] = tdots[2]
     end
 
-    return Trail(pts=pts, ws=csc.w)
+    return Trail(pts=pts, ws=sg.w)
 end
 
 
-struct CurvatureScales <: Mark
-    rmin :: Float64
-    rmax :: Float64
-    nr :: Int64
-    nl :: Int64
+struct CurvatureVisual <: Mark
+    r :: Float64
+    ϕ :: Float64
+    n :: Int64
+    w :: Float64
+    fs :: Float64
 end
-CurvatureScales(rmin, rmax; nr=4, nl=6) = CurvatureScales(rmin, rmax, nr, nl)
+CurvatureVisual(r; ϕ=0.0, n=4, w=0.005, fs=0.1) = CurvatureVisual(r, ϕ, n, w, fs)
 
-function ζ(cs::CurvatureScales)
+function ζ(cv::CurvatureVisual)
 
-    
-    output = Circle()
 
-    thetas = LinRange(0.0, 2*π, cs.nr+1)[1:end-1]
-    rs = LinRange(cs.rmin, cs.rmax, cs.nr)
+    ϵ = 1.5*cv.fs / (cv.r)
+    output = S(:strokeDasharray => 7)*Arc(cv.r, cv.r, [0.0, 0.0], 0.0, -π/2+ϵ, 3*π/2-ϵ)
 
-    for i=1:cs.nr
-        for ϕ in LinRange(0.0, 2*π, cs.nl+1)[1:end-1]
-            output += R(thetas[i])*CScaleCurve(rs[i], ϕ, 0.01)
-        end
+    output += T(0.0, -cv.r)*TextMark(text=L"%$(cv.r)r_s", fontsize=cv.fs)
+
+    for θ in LinRange(0.0, 2*π, cv.n+1)[2:end]
+        output += R(cv.ϕ) * SGeodesic(cv.r, θ, cv.w)
     end
 
     return output
 end
 
+struct CurvScaleDiagram <: Mark
+    rmin :: Float64
+    rmax :: Float64
+    n :: Int64
+    w :: Float64
+    fs :: Float64
+end
+CurvScaleDiagram(rmin, rmax; n=4, w=0.01, fs=0.1) = CurvScaleDiagram(rmin, rmax, n, w, fs)
 
+function ζ(csd::CurvScaleDiagram)
+
+    rs = LinRange(csd.rmin, csd.rmax, 3)
+
+    output = Circle()
+    output += CurvatureVisual(rs[1], 0.0, csd.n, csd.w, csd.fs)
+    output += CurvatureVisual(rs[2], π/2, csd.n, csd.w, csd.fs)
+    output += CurvatureVisual(rs[3], π, csd.n, csd.w, csd.fs)
+
+    return output
+end

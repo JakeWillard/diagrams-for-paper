@@ -5,4 +5,5 @@ using LaTeXStrings
 
 include("./marks.jl")
 
-draw(CurvatureScales(1.4, 3.0))
+draw(RGeodesic(0.0, 0.0))
+
