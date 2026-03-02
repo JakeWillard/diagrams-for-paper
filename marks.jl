@@ -10,10 +10,202 @@ FieldLine(r0; μ=1.0, Δ=1.0, w=0.01) = FieldLine(μ, Δ, r0, w)
 function ζ(fl::FieldLine)
 
     cy = (fl.r0 / fl.μ)^2
-    pts = [(x, fl.μ*sqrt(x^2 + cy)) for x in LinRange(-fl.Δ/2, fl.Δ/2, 100)]
+    Δx = sqrt((fl.Δ/fl.μ)^2 - cy)
+    pts = [(x, fl.μ*sqrt(x^2 + cy)) for x in LinRange(-Δx, Δx, 100)]
     return Trail(pts=pts, ws=fl.w)
 end
 
+
+struct Separatrix <: Mark
+    μ :: Float64
+    Δy :: Float64
+    color :: Symbol
+end
+Separatrix(; μ=1.0, Δy=1.0, color=:black) = Separatrix(μ, Δy, color)
+
+function ζ(sep::Separatrix)
+
+    dx = sep.Δy/sep.μ
+    ln1 = S(:strokeDasharray => 3, :stroke => sep.color) * Line([-dx, dx], [-sep.Δy, sep.Δy])
+    ln2 = S(:strokeDasharray => 3, :stroke => sep.color) * Line([dx, -dx], [-sep.Δy, sep.Δy])
+
+    return ln1 + ln2
+end
+
+
+struct LabeledPoint <: Mark
+    x :: Float64
+    y :: Float64
+    ϕ :: Float64
+    label :: LaTeXString
+    fontsize :: Float64
+    dotsize :: Float64
+end
+
+function ζ(lp::LabeledPoint)
+
+    pt = Circle(r=lp.dotsize, c=[lp.x, lp.y])
+    dr = lp.dotsize + lp.fontsize/2.0
+    txt = T(dr*cos(lp.ϕ), dr*sin(lp.ϕ))*T(lp.x, lp.y)*TextMark(text=lp.label, fontsize=lp.fontsize)
+    return pt + txt
+end
+
+
+struct Upstream <: Mark
+    μ :: Float64
+    δ :: Float64
+    Δy :: Float64
+    fontsize :: Float64
+end
+
+function ζ(u::Upstream)
+
+    dashes = S(:strokeDasharray => 7)
+    greyout = S(:opacity => 0.5, :fill => :grey)
+
+    Δy = u.Δy
+    Δx = u.Δy / u.μ
+    δ = u.δ
+    l = δ / u.μ
+
+    drgn = greyout*Rectangle(h=2*δ, w=2*l)
+
+    pts = LabeledPoint(0.0, Δy/2, π/4, L"\mathfrak{q}", u.fontsize, u.fontsize/7)
+    pts += LabeledPoint(0.0, Δy, π/4, L"\mathfrak{u}", u.fontsize, u.fontsize/7)
+    pts += LabeledPoint(Δx/2, Δy/2, π/4, L"\mathfrak{h}", u.fontsize, u.fontsize/7)
+    pts += LabeledPoint(0.0, δ, π/4, L"\mathfrak{m}", u.fontsize, u.fontsize/7)
+
+    ylabel = dashes * Line([0.0, -3*Δx/4], [0.0, 0.0])
+    ylabel += dashes * Line([0.0, 0.0], [0.0, Δy])
+    ylabel += dashes * Line([0.0, -3*Δx/4], [Δy, Δy])
+    ylabel += dashes * Line([-3*Δx/4, -3*Δx/4], [0.0, Δy])
+    ylabel += T(-3*Δx/4, Δy/2) * TextMark(text=L"\Delta y^+", anchor=:w, fontsize=u.fontsize)
+
+    xlabel = dashes * Line([-Δx/2, -Δx/2], [Δy/2, 3*Δy/2])
+    xlabel += dashes * Line([-Δx/2, Δx/2], [Δy/2, Δy/2])
+    xlabel += dashes * Line([Δx/2, Δx/2], [Δy/2, 3*Δy/2])
+    xlabel += dashes * Line([-Δx/2, Δx/2], [3*Δy/2, 3*Δy/2])
+    xlabel += T(0.0, 3*Δy/2) * TextMark(text=L"\Delta x^+", anchor=:s, fontsize=u.fontsize)
+
+
+    sep = Separatrix(μ=u.μ, Δy=Δy, color=:red)
+
+    nfl = 5
+    r0s = LinRange(δ, Δy, nfl+1)[1:end-1]
+    fls = greyout * FieldLine(r0s[1]; μ=u.μ, Δ=Δy, w=0.001)
+    for i=2:nfl
+        fls += greyout * FieldLine(r0s[i]; μ=u.μ, Δ=Δy, w=0.001)
+    end
+    fls += greyout * R(π)*FieldLine(r0s[1]; μ=u.μ, Δ=1.2*Δy, w=0.001)
+    for i=2:nfl
+        fls += greyout * R(π)*FieldLine((1 + 0.05*i)*r0s[i]; μ=u.μ, Δ=1.2*Δy, w=0.001)
+    end
+    #fls += R(π) * fls
+
+    return drgn + pts + ylabel + xlabel + sep + fls
+end
+
+struct Downstream <: Mark
+    μ :: Float64
+    δ :: Float64
+    fontsize :: Float64
+end
+
+function ζ(d::Downstream)
+
+    Δy = 2*d.δ
+    Δx = d.δ/d.μ
+
+    drgn = S(:opacity => 0.3, :fill => :grey) * Rectangle(h=Δy, w=Δx)
+
+    sep = S(:strokeDasharray => 3) * Line([-Δx/2, Δx/2], [0.0, Δy/2])
+    sep += S(:strokeDasharray => 3) * Line([-Δx/2, Δx/2], [0.0, -Δy/2])
+
+    pts = LabeledPoint(-Δx/2, 0.0, π, "x", d.fontsize, d.fontsize/7)
+    pts += LabeledPoint(0.0, 0.0, 3*π/4, L"\mathfrak{p}", d.fontsize, d.fontsize/7)
+    pts += LabeledPoint(0.0, Δy/4, 3*π/4, L"\mathfrak{s}", d.fontsize, d.fontsize/7)
+    pts += LabeledPoint(Δx/2, 0.0, 0.0, L"\mathfrak{o}", d.fontsize, d.fontsize/7)
+
+    dashes = S(:strokeDasharray => 7)
+
+    xlabel = dashes * Line([-Δx/2, Δx/2], [0.0, 0.0])
+    xlabel += dashes * Line([-Δx/2, -Δx/2], [0.0, 0.75*Δy])
+    xlabel += dashes * Line([-Δx/2, Δx/2], [0.75*Δy, 0.75*Δy])
+    xlabel += dashes * Line([Δx/2, Δx/2], [0.0, 0.75*Δy])
+    xlabel += T(0.0, 0.75*Δy) * TextMark(text=L"l", anchor=:s, fontsize=d.fontsize)
+
+    ylabel = dashes * Line([0.0, 0.0], [-Δy/4, Δy/4])
+    ylabel += dashes * Line([0.0, 0.75*Δx], [Δy/4, Δy/4])
+    ylabel += dashes * Line([0.0, 0.75*Δx], [-Δy/4, -Δy/4])
+    ylabel += dashes * Line([0.75*Δx, 0.75*Δx], [-Δy/4, Δy/4])
+    ylabel += T(0.75*Δx, 0.0) * TextMark(text=L"\delta", anchor=:e, fontsize=d.fontsize)
+
+
+    return drgn + sep + pts + xlabel + ylabel
+end
+
+
+struct FDDiagram <: Mark
+    μ :: Float64
+    δ :: Float64
+    Δy :: Float64
+    fontsize :: Float64
+end
+FDDiagram(μ; δ=0.1, Δy=1.0, fontsize=0.15) = FDDiagram(μ, δ, Δy, fontsize)
+
+function ζ(fd::FDDiagram)
+
+    Δx = fd.Δy/fd.μ
+    l = fd.δ/fd.μ
+    xshift = 2Δx + l
+    m =  (fd.Δy - fd.δ) / (xshift + Δx/2 - l)
+    xw = xshift - Δx/2
+    ynw = fd.Δy
+    yne = fd.δ + m*(xshift - Δx/2 - l)
+    ysw = -ynw
+    yse = -yne
+
+    u = Upstream(fd.μ, fd.δ, fd.Δy, fd.fontsize)
+    d = T(xshift, 0.0)*Downstream(fd.μ, fd.Δy, fd.fontsize)
+
+    lnstyle = S(:strokeDasharray => 3, :stroke => :purple)
+    lns = lnstyle * Line([0.0, xw], [fd.δ, ynw])
+    lns += lnstyle * Line([l, xw], [fd.δ, yne])
+    lns += lnstyle * Line([0.0, xw], [-fd.δ, ysw])
+    lns += lnstyle * Line([l, xw], [-fd.δ, yse])
+    lns += lnstyle * Line([0.0, 0.0], [fd.δ, -fd.δ])
+    lns += lnstyle * Line([l, l], [fd.δ, -fd.δ])
+    lns += lnstyle * Line([0.0, l], [fd.δ, fd.δ])
+    lns += lnstyle * Line([0.0, 0.0], [-fd.δ, -fd.δ])
+
+    # xc = (fd.δ + 1.5*fd.Δy)/fd.μ
+    # xw = (fd.δ + fd.Δy)/fd.μ
+    # ynw = fd.Δy/2
+    # ysw = -ynw
+
+    return u + d + lns
+end
+
+
+
+# ===================================
+# ===================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ===================================
+# ===================================
 
 struct FieldSheet <: Mark
     V :: Float64
@@ -55,77 +247,12 @@ function ζ(wl::WorldLine)
 end
 
 
-struct Separatrix <: Mark
-    μ :: Float64
-    Δy :: Float64
-    color :: Symbol
-end
-Separatrix(; μ=1.0, Δy=1.0, color=:black) = Separatrix(μ, Δy, color)
-
-function ζ(sep::Separatrix)
-
-    dx = sep.Δy/sep.μ
-    ln1 = S(:strokeDasharray => 3, :fill => sep.color) * Line([-dx, dx], [-sep.Δy, sep.Δy])
-    ln2 = S(:strokeDasharray => 3, :fill => sep.color) * Line([dx, -dx], [-sep.Δy, sep.Δy])
-
-    return ln1 + ln2
+struct ConformalDiagram <: Mark
+    Cp :: Float64
+    Cm :: Float64
 end
 
 
-
-
-struct DiffusionRegion <: Mark
-    μ :: Float64
-    δ :: Float64
-end
-DiffusionRegion(; μ=1.0, δ=1.0) = DiffusionRegion(μ, δ)
-
-function ζ(dr::DiffusionRegion)
-
-    rec = S(:opacity=>0.5, :fill=>:red)*Rectangle(h=dr.δ, w=dr.δ/dr.μ)
-    arrow_1 = Arrow([0.0 ,0.0], [dr.δ, dr.δ/2], headsize=dr.δ/10)
-    arrow_2 = Arrow([0.0 ,0.0], [-dr.δ, -dr.δ/2], headsize=dr.δ/10)
-    arrow_3 = Arrow([dr.δ/dr.μ, (dr.δ+1)/dr.μ], [0.0, 0.0], headsize=dr.δ/10)
-    arrow_4 = Arrow([-dr.δ/dr.μ, -(dr.δ+1)/dr.μ], [0.0, 0.0], headsize=dr.δ/10)
-
-    return rec + arrow_1 + arrow_2 + arrow_3 + arrow_4
-end
-
-
-struct VerticalDist <: Mark
-    Δx :: Float64
-    Δy :: Float64
-    label :: LaTeXString
-    anchor :: Symbol
-end
-VerticalDist(Δy, label; anchor=:e, Δx=0.0) = VerticalDist(Δx, Δy, label, anchor)
-
-function ζ(vd::VerticalDist)
-
-    ln1 = S(:strokeDasharray => 7)*Line([0.0, 0.0], [vd.Δy/2, -vd.Δy/2])
-    ln2 = S(:strokeDasharray => 3)*Line([-vd.Δx, 0.0], [vd.Δy/2, vd.Δy/2])
-    ln3 = S(:strokeDasharray => 3)*Line([-vd.Δx, 0.0], [-vd.Δy/2, -vd.Δy/2])
-
-    return ln1 + ln2 + ln3 + TextMark(text=vd.label, fontsize=vd.Δy/10, anchor=vd.anchor)
-end
-
-
-struct HorizontalDist <: Mark
-    Δx :: Float64
-    Δy :: Float64
-    label :: LaTeXString
-    anchor :: Symbol
-end
-HorizontalDist(Δx, label; anchor=:s, Δy=0.0) = HorizontalDist(Δx, Δy, label, anchor)
-
-function ζ(hd::HorizontalDist)
-
-    ln1 = S(:strokeDasharray => 7)*Line([-hd.Δx/2, hd.Δx/2], [0.0, 0.0])
-    ln2 = S(:strokeDasharray => 3)*Line([-hd.Δx/2, -hd.Δx/2], [-hd.Δy, 0.0])
-    ln3 = S(:strokeDasharray => 3)*Line([hd.Δx/2, hd.Δx/2], [-hd.Δy, 0.0])
-
-    return ln1 + ln2 + ln3 + TextMark(text=hd.label, fontsize=hd.Δx/10, anchor=hd.anchor)
-end
 
 
 # ===============================
@@ -140,11 +267,11 @@ function ζ(rg::RGeodesic)
 
     sty = S(:strokeDasharray => 3)
 
-    if rg.K == 0
+    if rg.K == 0 || rg.d == 0
         return sty*Line([-1.0, 1.0], [rg.d, rg.d])
     end
 
-    r = 1/sqrt(abs(rg.K))
+    r = 1/sqrt(rg.d*abs(rg.K))
     θ = atan(1/r)
 
     if rg.K > 0
@@ -157,26 +284,52 @@ function ζ(rg::RGeodesic)
 end
 
 
-
 struct GeodesicGrid <: Mark
     K :: Float64
     n :: Int64
 end
 GeodesicGrid(K; n=4) = GeodesicGrid(K, n)
 
-function ζ(gd::GeodesicGrid)
+function ζ(gg::GeodesicGrid)
 
-
-    if gd.K == 0.0
-        crv = S(:strokeDasharray => 3)*Line([-1.0, 1.0], [0.0, 0.0])
-    else
-        crv = S(:strokeDasharray => 3)*T(0.0, -1.0)*Arc(abs(gd.K)^(-1/3), 1.0, [0.0, 0.0], 0.0, 0.0, π)
+    ds = LinRange(0.0, 1.0, gg.n)
+    curves = RGeodesic(gg.K, ds[1])
+    for i=2:gg.n
+        curves += RGeodesic(gg.K, ds[i])
     end
 
+    curves += R(π)*curves
+    curves += R(π/2)*curves
 
-    return crv
+    return curves
 end
 
+
+struct TensionVisual <: Mark
+    K :: Float64
+    δ :: Float64
+    Δy :: Float64
+    dcolor :: Symbol
+    flcolor :: Symbol
+end
+TensionVisual(K; δ=0.1, Δy=0.05, dcolor=:grey, flcolor=:purple) = TensionVisual(K, δ, Δy, dcolor, flcolor)
+
+function ζ(tv::TensionVisual)
+
+    grd = GeodesicGrid(tv.K)
+    drgn = S(:fill => tv.dcolor, :opacity => 0.5)*Rectangle(h=tv.δ, w=2.0)
+
+    lns = S(:stroke => tv.flcolor) * Arrow([-1.0, 1.0], [tv.δ+tv.Δy, tv.δ+tv.Δy], headsize=tv.δ/7)
+    lns += T(0.0, tv.Δy)*lns
+    lns += T(0.0, 2*tv.Δy)*lns
+    lns += R(π)*lns
+
+    return grd + drgn + lns
+end
+
+
+# ================================
+# ================================
 
 
 

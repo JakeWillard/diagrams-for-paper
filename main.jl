@@ -5,5 +5,4 @@ using LaTeXStrings
 
 include("./marks.jl")
 
-draw(RGeodesic(0.0, 0.0))
-
+draw(FDDiagram(0.35))
