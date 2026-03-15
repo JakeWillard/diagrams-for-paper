@@ -88,7 +88,7 @@ function ζ(u::Upstream)
     xlabel += T(0.0, 3*Δy/2) * TextMark(text=L"\Delta x^+", anchor=:s, fontsize=u.fontsize)
 
 
-    sep = Separatrix(μ=u.μ, Δy=Δy, color=:red)
+    sep = Separatrix(μ=u.μ, Δy=Δy, color=:black)
 
     nfl = 5
     r0s = LinRange(δ, Δy, nfl+1)[1:end-1]
@@ -247,11 +247,58 @@ function ζ(wl::WorldLine)
 end
 
 
-struct ConformalDiagram <: Mark
-    Cp :: Float64
-    Cm :: Float64
+struct RateIllustration <: Mark
+
+    V :: Float64
+
 end
 
+function ζ(r::RateIllustration)
+
+    Δt = (sqrt(1.25)-1)/r.V
+
+    fs = FieldSheet(0.0, V=r.V, w=0.003)
+    fs += FieldSheet(Δt, V=r.V, w=0.003)
+    fs += T(0.5, Δt/20)*TextMark(text=L"\psi_0", anchor=:se, fontsize=Δt/10)
+    fs += T(0.5, Δt/20-Δt)*TextMark(text=L"\psi_0 \pm \Delta \psi", anchor=:se, fontsize=Δt/10)
+
+    X = S(:stroke => :darkred, :strokeDasharray => 7) * Line([0.0, 0.0], [0.0, Δt])
+    Y = S(:stroke => :darkgreen, :strokeDasharray => 7) * Line([-0.5, 0.5], [0.0, 0.0])
+
+    clabels = S(:fill => :darkred)*T(0.0, Δt/2)*TextMark(text=L"X(\psi)", anchor=:w, fontsize=Δt/10)
+    clabels += S(:fill => :darkgreen)*T(0.0, -Δt/20)*TextMark(text=L"Y", anchor=:n, fontsize=Δt/10)
+
+    dlabels = S(:strokeDasharray => 3)*Line([0.0, 0.75], [Δt, Δt])
+    dlabels += S(:strokeDasharray => 3)*Line([0.5, 0.75], [0.0, 0.0])
+    dlabels += S(:strokeDasharray => 3)*Line([0.75, 0.75], [0.0, Δt])
+    dlabels += T(0.75, Δt/2)*TextMark(text=L"w_t", anchor=:e, fontsize=Δt/10)
+    dlabels += S(:strokeDasharray => 3)*Line([-0.5, -0.5], [0.0, -Δt/2])
+    dlabels += S(:strokeDasharray => 3)*Line([0.5, 0.5], [0.0, -Δt/2])
+    dlabels += S(:strokeDasharray => 3)*Line([-0.5, 0.5], [-Δt/2, -Δt/2])
+    dlabels += T(0.0, -Δt/2)*TextMark(text=L"2w_y", anchor=:n, fontsize=Δt/10)
+
+    return fs + X + Y + clabels + dlabels
+end
+
+
+# struct ConformalDiagram <: Mark
+#     Cp :: Float64
+#     Cm :: Float64
+#     Δt :: Float64
+#     Δ̄s :: Float64
+#     fontsize :: Float64
+# end
+# ConformalDiagram(Cp, Cm; Δt=1.0, Δ̄s=1.0, fontsize=0.1) = ConformalDiagram(Cp, Cm, Δt, Δ̄s, fontsize)
+
+# function ζ(cd::ConformalDiagram)
+
+#     axes = Line([-cd.Δ̄s, cd.Δ̄s], [0.0, 0.0])
+#     axes += Line([0.0, 0.0], [0.0, cd.Δt])
+#     axes += T(cd.Δ̄s, 0.0)*TextMark(text="̂h", anchor=:ne, fontsize=cd.fontsize)
+#     axes += T(0.0, cd.Δt)*TextMark(text=L"t", anchor=:nw, fontsize=cd.fontsize)
+
+#     return axes
+# end
 
 
 
