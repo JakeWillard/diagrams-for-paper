@@ -107,8 +107,69 @@ end
 
 function plot_static_lambda()
 
-    
+    N = 5
+    rs = LinRange(1.1, 5.0, 100)
 
+    L1s = [[cos(θ), -sin(θ), 0.0] for θ in LinRange(0, π/2, N)]
+    N1s = [[sin(θ), cos(θ), 0.0] for θ in LinRange(0, π/2, N)]
+    L2s = [[cos(θ), 0.0, -sin(θ)] for θ in LinRange(0, π/2, N)]
+    N2s = [[sin(θ), 0.0, cos(θ)] for θ in LinRange(0, π/2, N)]
+    L3s = [[0.0, cos(θ), -sin(θ)] for θ in LinRange(0, π/2, N)]
+    N3s = [[0.0, sin(θ), cos(θ)] for θ in LinRange(0, π/2, N)]
+
+    N11 = [N1s[i][1] for i=1:N]
+    N21 = [N2s[i][1] for i=1:N]
+    N32 = [N3s[i][2] for i=1:N]
+
+    λ1 = zeros(100, N)
+    λ2 = zeros(100, N)
+    λ3 = zeros(100, N)
+
+    for i=1:N
+        λ1[:, i] = [static_lambda(r, L1s[i], N1s[i]) for r in rs]
+        λ2[:, i] = [static_lambda(r, L2s[i], N2s[i]) for r in rs]
+        λ3[:, i] = [static_lambda(r, L3s[i], N3s[i]) for r in rs]
+    end
+
+    p1 = plot(rs, λ1, label=reshape([L"N_1 = %$(round(N11[i], digits=2))" for i=1:N], (1,N)), title=L"\vec{M}=\vec{e}_3")
+    p2 = plot(rs, λ2, label=reshape([L"N_1 = %$(round(N21[i], digits=2))" for i=1:N], (1,N)), title=L"\vec{M}=\vec{e}_2")
+    #p3 = plot(rs, λ3, label=reshape([L"N_2 = %$(round(N32[i], digits=2))" for i=1:N], (1,N)), title=L"\vec{M}=\vec{e}_1")
+
+    return plot(p1, p2)
+end
+
+
+function plot_orbit_lambda()
+
+    N = 5
+    rs = LinRange(5, 100, 100)
+
+    L1s = [[cos(θ), -sin(θ), 0.0] for θ in LinRange(0, π/2, N)]
+    N1s = [[sin(θ), cos(θ), 0.0] for θ in LinRange(0, π/2, N)]
+    L2s = [[cos(θ), 0.0, -sin(θ)] for θ in LinRange(0, π/2, N)]
+    N2s = [[sin(θ), 0.0, cos(θ)] for θ in LinRange(0, π/2, N)]
+    L3s = [[0.0, cos(θ), -sin(θ)] for θ in LinRange(0, π/2, N)]
+    N3s = [[0.0, sin(θ), cos(θ)] for θ in LinRange(0, π/2, N)]
+
+    N1par = [N1s[i][1] for i=1:N]
+    N2par = [N2s[i][1] for i=1:N]
+    N3perp = [N3s[i][2] for i=1:N]
+
+    λ1 = zeros(100, N)
+    λ2 = zeros(100, N)
+    λ3 = zeros(100, N)
+
+    for i=1:N
+        λ1[:, i] = [orbit_lambda(r, L1s[i], N1s[i]) for r in rs]
+        λ2[:, i] = [orbit_lambda(r, L2s[i], N2s[i]) for r in rs]
+        λ3[:, i] = [orbit_lambda(r, L3s[i], N3s[i]) for r in rs]
+    end
+
+    p1 = plot(rs, λ1, label=reshape([L"N_{\parallel} = %$(round(N1par[i], digits=2))" for i=1:N], (1,N)), title=L"\vec{M}=\vec{e}_3")
+    p2 = plot(rs, λ2, label=reshape([L"N_{\parallel} = %$(round(N2par[i], digits=2))" for i=1:N], (1,N)), title=L"\vec{M}=\vec{e}_{\perp}")
+    p3 = plot(rs, λ3, label=reshape([L"N_{\perp} = %$(round(N3perp[i], digits=2))" for i=1:N], (1,N)), title=L"\vec{M}=\vec{e}_{\parallel}")
+
+    return plot(p1, p2, p3)
 end
 
 
