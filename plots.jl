@@ -105,6 +105,45 @@ function light_rate_diagram(Δ̄s1, Δ̄s2, xlimits)
 end
 
 
+function plot_static_lambda()
+
+    
+
+end
+
+
+function plot_orbit_vectors()
+
+    N = 30
+    x = LinRange(-5.0, 5.0, N)
+    y = LinRange(-5.0, 5.0, N)
+    u = []
+    v = []
+    X = zeros(N, N)
+    Y = zeros(N, N)
+
+    for i=1:N
+        for j=1:N
+            r = sqrt(x[i]^2 + y[j]^2)
+            θ = atan(y[j]/x[i])
+            X[j,i] = x[i]
+            Y[j,i] = y[j]
+            if r <= 1.0
+                push!(u, 0.0)
+                push!(v, 0.0)
+            else
+                T, epar, eperp, e3 = orbit_basis(r)
+                epar_x = cos(θ)*epar[2] - sin(θ)*epar[3]
+                epar_y = sin(θ)*epar[2] + cos(θ)*epar[3]
+                push!(u, epar_y)
+                push!(u, epar_x)
+            end
+        end
+    end
+
+    return quiver(X, Y, quiver=(u, v))
+end
+
 
 # function conformal_alt(a, S)
 

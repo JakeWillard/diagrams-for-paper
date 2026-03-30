@@ -7,22 +7,25 @@ include("./formulas.jl")
 include("./plots.jl")
 
 
-p1 = light_rate_diagram(1.0, 1.0, (-2.0, 2.0))
-p2 = light_rate_diagram(0.5, 1.5, (-2.0, 2.0))
-p3 = light_rate_diagram(0.5, 0.5, (-2.0, 2.0))
-p4 = light_rate_diagram(1.5, 1.5, (-2.0, 2.0))
-
-title!(p1, "Special Relativistic")
-title!(p2, "Rightward Acceleration")
-title!(p3, "Tidal Compression")
-title!(p4, "Tidal Stretching")
-
-l = @layout [a b; c d]
-ptot = plot(p1, p2, p3, p4, layout=l, size=(800, 800))
-savefig(ptot, "./light-speed.png")
+plot_orbit_vectors()
 
 
-light_rate_diagram(1.0, 1.0, (-2.0, 2.0))
+# p1 = light_rate_diagram(1.0, 1.0, (-2.0, 2.0))
+# p2 = light_rate_diagram(0.5, 1.5, (-2.0, 2.0))
+# p3 = light_rate_diagram(0.5, 0.5, (-2.0, 2.0))
+# p4 = light_rate_diagram(1.5, 1.5, (-2.0, 2.0))
+
+# title!(p1, "Special Relativistic")
+# title!(p2, "Rightward Acceleration")
+# title!(p3, "Tidal Compression")
+# title!(p4, "Tidal Stretching")
+
+# l = @layout [a b; c d]
+# ptot = plot(p1, p2, p3, p4, layout=l, size=(800, 800))
+# savefig(ptot, "./light-speed.png")
+
+
+# light_rate_diagram(1.0, 1.0, (-2.0, 2.0))
 
 
 

@@ -28,6 +28,70 @@ function upstream_drift(mu, VA)
 end
 
 
+function static_lambda(r, L, N)
+
+    a2 = N[1]^2 / (4*(r - 1))
+
+    LN12 = L[1]*N[2] - L[2]*N[1]
+    LN13 = L[1]*N[3] - L[3]*N[1]
+    LN23 = L[2]*N[3] - L[3]*N[2]
+
+    S = -(0.5 - (3/2)*N[1]^2)
+    K = LN23 - 0.5*LN12 - 0.5*LN13
+
+    return a2 - 1.25*S - 0.75*K
+end
+
+
+function orbit_basis(r)
+    
+    ξ = r >= 3.0 ? acosh(sqrt((1 - 1/r)/(1 - (3/2)/r))) : acosh(2*sqrt(2)/(3*sqrt(1 - 1/r)))
+    ω = r >= 3.0 ? 0.0 : atan((r/(3*sqrt(3)))*sqrt((3/r-1)^3/(1 - 1/r)))
+
+    T = [cosh(ξ), -sinh(ξ)*sin(ω), sinh(ξ)*cos(ω), 0.0]
+    epar = [sinh(ξ), -cosh(ξ)*sin(ω), cosh(ξ)*cos(ω), 0.0]
+    eperp = [0.0, cosh(ω), sin(ω), 0.0]
+    e3 = [0.0, 0.0, 0.0, 1.0]
+
+    return T, epar, eperp, e3
+end
+
+
+function orbit_basis_cartesian(r, θ)
+
+    T, epar, eperp, e3 = orbit_basis(r)
+    xhat = cos(θ)*eperp[2:3] - sin(θ)*epar[2:3]
+    yhat = sin(θ)*eperp[2:3] + cos(θ)*epar[2:3]
+
+    return xhat, yhat
+end
+
+
+
+function orbit_lambda(r, L, N)
+
+    ξ = r >= 3.0 ? acosh(sqrt((1 - 1/r)/(1 - (3/2)/r))) : acosh(2*sqrt(2)/(3*sqrt(1 - 1/r)))
+    ω = r >= 3.0 ? 0.0 : atan((r/(3*sqrt(3)))*sqrt((3/r-1)^3/(1 - 1/r)))
+
+    T = [cosh(ξ), -sinh(ξ)*sin(ω), sinh(ξ)*cos(ω), 0.0]
+    epar = [sinh(ξ), -cosh(ξ)*sin(ω), cosh(ξ)*cos(ω), 0.0]
+    eperp = [0.0, cosh(ω), sin(ω), 0.0]
+    e3 = [0.0, 0.0, 0.0, 1.0]
+
+    L_4vec = L[1]*epar + L[2]*eperp + L[3]*e3
+    N_4vec = N[1]*epar + N[2]*eperp + N[3]*e3
+
+    TN2 = (kron(T, N_4vec) - transpose(kron(T, N_4vec))) .^2
+    LN2 = (kron(L_4vec, N_4vec) - transpose(kron(L_4vec, N_4vec))) .^ 2
+
+    S = TN2[1,2] - 0.5*TN2[1,3] - 0.5*TN2[1,4] + 0.5*TN2[2,3] + 0.5*TN2[2,4] - TN2[3,4]
+    K = -LN2[1,2] + 0.5*LN2[1,3] + 0.5*LN2[1,4] - 0.5*LN2[2,3] - 0.5*LN2[2,4] + LN2[3,4]
+
+    return -1.25*S - 0.75*K
+end
+
+
+
 function lambda(r, chi_a, chi_v, N, M)
 
     L = Vector([N[2]*M[3]-N[3]*M[2], N[3]*M[1] - N[1]*M[3], N[1]*M[2] - N[2]*M[1]])
