@@ -105,10 +105,10 @@ function light_rate_diagram(Δ̄s1, Δ̄s2, xlimits)
 end
 
 
-function plot_static_lambda()
+function plot_static_lambda(r1, r2)
 
     N = 5
-    rs = LinRange(1.1, 5.0, 100)
+    rs = LinRange(r1, r2, 100)
 
     L1s = [[cos(θ), -sin(θ), 0.0] for θ in LinRange(0, π/2, N)]
     N1s = [[sin(θ), cos(θ), 0.0] for θ in LinRange(0, π/2, N)]
@@ -139,10 +139,10 @@ function plot_static_lambda()
 end
 
 
-function plot_orbit_lambda()
+function plot_orbit_lambda(r1, r2)
 
     N = 5
-    rs = LinRange(5, 100, 100)
+    rs = LinRange(r1, r2, 100)
 
     L1s = [[cos(θ), -sin(θ), 0.0] for θ in LinRange(0, π/2, N)]
     N1s = [[sin(θ), cos(θ), 0.0] for θ in LinRange(0, π/2, N)]
