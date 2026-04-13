@@ -173,6 +173,67 @@ function plot_orbit_lambda(r1, r2)
 end
 
 
+function plot_drop_lambda(r1, r2)
+
+    N = 5
+    rs = LinRange(r1, r2, 100)
+
+    L1s = [[cos(θ), -sin(θ), 0.0] for θ in LinRange(0, π/2, N)]
+    N1s = [[sin(θ), cos(θ), 0.0] for θ in LinRange(0, π/2, N)]
+    L2s = [[cos(θ), 0.0, -sin(θ)] for θ in LinRange(0, π/2, N)]
+    N2s = [[sin(θ), 0.0, cos(θ)] for θ in LinRange(0, π/2, N)]
+    L3s = [[0.0, cos(θ), -sin(θ)] for θ in LinRange(0, π/2, N)]
+    N3s = [[0.0, sin(θ), cos(θ)] for θ in LinRange(0, π/2, N)]
+
+    N11 = [N1s[i][1] for i=1:N]
+    N21 = [N2s[i][1] for i=1:N]
+    N32 = [N3s[i][2] for i=1:N]
+
+    λ1 = zeros(100, N)
+    λ2 = zeros(100, N)
+    λ3 = zeros(100, N)
+
+    for i=1:N
+        λ1[:, i] = [drop_lambda(r, L1s[i], N1s[i]) for r in rs]
+        λ2[:, i] = [drop_lambda(r, L2s[i], N2s[i]) for r in rs]
+        λ3[:, i] = [drop_lambda(r, L3s[i], N3s[i]) for r in rs]
+    end
+
+    p1 = plot(rs, λ1, label=reshape([L"N_1 = %$(round(N11[i], digits=2))" for i=1:N], (1,N)), title=L"\vec{M}=\vec{e}_3")
+    p2 = plot(rs, λ2, label=reshape([L"N_1 = %$(round(N21[i], digits=2))" for i=1:N], (1,N)), title=L"\vec{M}=\vec{e}_2")
+    p3 = plot(rs, λ3, label=reshape([L"N_2 = %$(round(N32[i], digits=2))" for i=1:N], (1,N)), title=L"\vec{M}=\vec{e}_1")
+
+    return plot(p1, p2, p3)
+
+end
+
+
+function plot_lambda_0()
+
+    ϵ = 0.3
+    αs = LinRange(0-ϵ, π+ϵ, 100)
+    βs = LinRange(0-ϵ, π+ϵ, 100)
+    λs = zeros(100, 100)
+
+    for i=1:100
+        for j=1:100
+            λs[j,i] = lambda_0(αs[i], βs[j])
+        end
+    end
+
+    p = contour(αs, βs, lambda_0, clabels=true, cbar=false, color=:darkrainbow, levels=[-1.0, -0.5, 0.0, 0.5])
+    scatter!(p, [π/2], [π/2], legend=false)
+    annotate!(p, π/2, π/2, ("  1.0", 8, :black, :left))
+    title!(p, L"f(\alpha, \beta)")
+    xlabel!(p, L"\alpha")
+    ylabel!(p, L"\beta")
+
+
+    return p
+end
+
+
+
 function plot_orbit_vectors()
 
     N = 30
@@ -205,6 +266,29 @@ function plot_orbit_vectors()
     return quiver(X, Y, quiver=(u, v))
 end
 
+
+
+function plot_f_actual()
+
+    VAs = LinRange(0, 1, 10)
+    μs = LinRange(0, 1, 12)[2:end-1]
+
+    β = π/2
+
+    αs = LinRange(0.0, π/2, 100)
+    x = []
+    fs = []
+    for i=1:100
+        for j=1:10
+            for k=1:10
+                push!(x, αs[i])
+                push!(fs, f_actual(μs[j], VAs[k], αs[i], β))
+            end
+        end
+    end
+
+    return scatter(x, fs)
+end
 
 # function conformal_alt(a, S)
 

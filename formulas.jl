@@ -88,24 +88,43 @@ function orbit_lambda(r, L, N)
 end
 
 
-
-function lambda(r, chi_a, chi_v, N, M)
-
-    L = Vector([N[2]*M[3]-N[3]*M[2], N[3]*M[1] - N[1]*M[3], N[1]*M[2] - N[2]*M[1]])
-
-    v2 = chi_v/(2*r)
-    g2v2 = v2/(1 - v2)
-    a2 = chi_a / r
+function drop_lambda(L, N)
 
     LN12 = L[1]*N[2] - L[2]*N[1]
     LN13 = L[1]*N[3] - L[3]*N[1]
     LN23 = L[2]*N[3] - L[3]*N[2]
 
-    A = 1 + (3/2)*g2v2
-    B = 0.5*(1 + 3*g2v2)
+    S = -(0.5 - (3/2)*N[1]^2)
+    K = LN23 - 0.5*LN12 - 0.5*LN13
 
-    S = A*N[1] - B*N[2] - 0.5*N[3]
-    K = -0.5*LN12 -B*LN13 + A*LN23
-
-    return a2 - 1.25*K - 0.75*S
+    return -1.25*S - 0.75*K
 end
+
+
+function lambda_0(α, β)
+
+    λ = 1 - 2*cos(α)^2 - sin(α)^2 * cos(β)^2
+
+    if (0.0 < α < π)
+        return λ
+    else    
+        return -λ - 2
+    end
+end
+
+
+function f_actual(μ, VA, α, β)
+
+    Mr = cos(α)
+    Nr = sin(α)*cos(β)
+
+    S = 0.5*(3*Nr^2 - 1) * 0.1
+    K = 0.5*(3*Mr^2 - 1) * 0.1
+    Q = S + K
+
+    R = rate(μ, VA, 0.0, S, K, Q)
+    Rsr = rate(μ, VA, 0.0, 0.0, 0.0, 0.0)
+
+    return (R/Rsr - 1) / 0.1
+end
+

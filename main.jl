@@ -6,5 +6,9 @@ using Plots
 include("./formulas.jl")
 include("./plots.jl")
 
-plot_orbit_lambda(1.01, 1.02)
+plot_f_actual()
 
+
+
+p = plot_lambda_0()
+savefig(p, "./f_contours.png")
