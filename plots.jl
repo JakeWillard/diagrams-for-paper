@@ -268,27 +268,94 @@ end
 
 
 
-function plot_f_actual()
+function plot_f_actual_heatmaps(VA)
 
-    VAs = LinRange(0, 1, 10)
-    μs = LinRange(0, 1, 12)[2:end-1]
+    αs = LinRange(0, π, 100)
+    βs = LinRange(0, π, 100)
 
-    β = π/2
+    
+    return heatmap(αs, βs, (x,y) -> f_actual(VA, x, y))
+end
 
-    αs = LinRange(0.0, π/2, 100)
-    x = []
-    fs = []
-    for i=1:100
-        for j=1:10
-            for k=1:10
-                push!(x, αs[i])
-                push!(fs, f_actual(μs[j], VAs[k], αs[i], β))
-            end
-        end
+
+function plot_f_actual_comparisons()
+
+    VAs = [0.01, 0.5, 1.0]
+    βs = [0.0, π/6, π/3, π/2]
+    αs = LinRange(0, π, 100)
+
+    p1 = plot(αs, x -> f_actual(VAs[1], x, βs[1]), label=L"V_A=%$(VAs[1])")
+    p2 = plot(αs, x -> f_actual(VAs[1], x, βs[2]), label=L"V_A=%$(VAs[1])")
+    p3 = plot(αs, x -> f_actual(VAs[1], x, βs[3]), label=L"V_A=%$(VAs[1])")
+    p4 = plot(αs, x -> f_actual(VAs[1], x, βs[4]), label=L"V_A=%$(VAs[1])")
+
+    for VA in VAs[2:end]
+
+        plot!(p1, αs, x -> f_actual(VA, x, βs[1]), label=L"V_A=%$(VA)")
+        plot!(p2, αs, x -> f_actual(VA, x, βs[2]), label=L"V_A=%$(VA)")
+        plot!(p3, αs, x -> f_actual(VA, x, βs[3]), label=L"V_A=%$(VA)")
+        plot!(p4, αs, x -> f_actual(VA, x, βs[4]), label=L"V_A=%$(VA)")
     end
 
-    return scatter(x, fs)
+    title!(p1, L"\beta=0")
+    title!(p2, L"\beta=\pi/6")
+    title!(p3, L"\beta=\pi/3")
+    title!(p4, L"\beta=\pi/2")
+
+    xlabel!(p1, L"\alpha")
+    xlabel!(p2, L"\alpha")
+    xlabel!(p3, L"\alpha")
+    xlabel!(p4, L"\alpha")
+
+    ylabel!(p1, L"\lambda/\bar{\kappa}")
+    ylabel!(p2, L"\lambda/\bar{\kappa}")
+    ylabel!(p3, L"\lambda/\bar{\kappa}")
+    ylabel!(p4, L"\lambda/\bar{\kappa}")
+
+    l = @layout [a b; c d]
+    return plot(p1, p2, p3, p4, layout=l)
 end
+
+function plot_f_actual_shaded()
+
+    βs = [0.0, π/6, π/3, π/2]
+    αs = LinRange(0, π, 100)
+
+    l1 = [f_actual(0.0001, α, βs[1]) for α in αs]
+    l2 = [f_actual(0.0001, α, βs[2]) for α in αs]
+    l3 = [f_actual(0.0001, α, βs[3]) for α in αs]
+    l4 = [f_actual(0.0001, α, βs[4]) for α in αs]
+
+    u1 = [f_actual(1.0, α, βs[1]) for α in αs]
+    u2 = [f_actual(1.0, α, βs[2]) for α in αs]
+    u3 = [f_actual(1.0, α, βs[3]) for α in αs]
+    u4 = [f_actual(1.0, α, βs[4]) for α in αs]
+
+    p1 = plot(αs, l1, fillrange=u1, fillalpha = 0.35, label=L"\lambda/\bar{\kappa}")
+    p2 = plot(αs, l2, fillrange=u2, fillalpha = 0.35, label=L"\lambda/\bar{\kappa}")
+    p3 = plot(αs, l3, fillrange=u3, fillalpha = 0.35, label=L"\lambda/\bar{\kappa}")
+    p4 = plot(αs, l4, fillrange=u4, fillalpha = 0.35, label=L"\lambda/\bar{\kappa}")
+
+    plot!(p1, αs, x -> lambda_0(x, βs[1]), label=L"f(\alpha,\beta)")
+    plot!(p2, αs, x -> lambda_0(x, βs[2]), label=L"f(\alpha,\beta)")
+    plot!(p3, αs, x -> lambda_0(x, βs[3]), label=L"f(\alpha,\beta)")
+    plot!(p4, αs, x -> lambda_0(x, βs[4]), label=L"f(\alpha,\beta)")
+
+    title!(p1, L"\beta=0")
+    title!(p2, L"\beta=\pi/6")
+    title!(p3, L"\beta=\pi/3")
+    title!(p4, L"\beta=\pi/2")
+
+    xlabel!(p1, L"\alpha")
+    xlabel!(p2, L"\alpha")
+    xlabel!(p3, L"\alpha")
+    xlabel!(p4, L"\alpha")
+
+    l = @layout [a b; c d]
+    return plot(p1, p2, p3, p4, layout=l)
+end
+
+
 
 # function conformal_alt(a, S)
 

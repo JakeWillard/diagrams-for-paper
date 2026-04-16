@@ -4,11 +4,10 @@ using LaTeXStrings
 using Plots
 
 include("./formulas.jl")
+# include("./marks.jl")
 include("./plots.jl")
 
-plot_f_actual()
+f_error()
 
 
-
-p = plot_lambda_0()
-savefig(p, "./f_contours.png")
+plot_f_actual_shaded()

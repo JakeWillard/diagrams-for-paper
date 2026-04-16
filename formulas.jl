@@ -113,18 +113,60 @@ function lambda_0(α, β)
 end
 
 
-function f_actual(μ, VA, α, β)
+function avg_rate(VA, a2, S, K, Q)
+
+    N = 100
+    μs = LinRange(0, 1, N)
+    Ravg = 0.0
+    for i=1:N
+        Ravg += rate(μs[i], VA, a2, S, K, Q)
+    end
+
+    return Ravg / N
+end
+
+
+function f_actual(VA, α, β)
 
     Mr = cos(α)
     Nr = sin(α)*cos(β)
 
-    S = 0.5*(3*Nr^2 - 1) * 0.1
-    K = 0.5*(3*Mr^2 - 1) * 0.1
+    κ = 0.1
+    S = 0.5*(3*Nr^2 - 1) * κ
+    K = 0.5*(3*Mr^2 - 1) * κ
     Q = S + K
 
-    R = rate(μ, VA, 0.0, S, K, Q)
-    Rsr = rate(μ, VA, 0.0, 0.0, 0.0, 0.0)
+    R = avg_rate(VA, 0.0, S, K, Q)
+    Rsr = avg_rate(VA, 0.0, 0.0, 0.0, 0.0)
 
-    return (R/Rsr - 1) / 0.1
+    return (R/Rsr - 1) / κ
+end
+
+
+function f_error()
+
+    l0(α, β) = 1.2444444 - 2.3166666*cos(α)^2 - 1.41666666*sin(α)^2 * cos(β)^2
+    l1(α, β) = 0.75 - 1.5*cos(α)^2 - 0.75*sin(α)^2 * cos(β)^2
+    f(α, β) = 1 - 2*cos(α)^2 - sin(α)^2 * cos(β)^2
+
+    x = LinRange(0, π/2, 100)
+    y = LinRange(0, π/2, 100)
+    err = []
+
+    for i=1:100
+        for j=1:100
+            err1 = abs((f(x[i], y[j]) - l0(x[i], y[j])))
+            err2 = abs((f(x[i], y[j]) - l1(x[i], y[j])))
+
+            if err1 !== NaN
+                push!(err, err1)
+            end
+            if err2 !== NaN
+                push!(err, err2)
+            end
+        end
+    end
+
+    return maximum(err)
 end
 
