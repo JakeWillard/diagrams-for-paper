@@ -1,13 +1,16 @@
+using LaTeXStrings
+
+
 # using Vizagrams
 # import Vizagrams: ζ
-using LaTeXStrings
-using Plots
+
+# using Plots
+
+using PlotlyJS
 
 include("./formulas.jl")
 # include("./marks.jl")
-include("./plots.jl")
+# include("./plots.jl")
 
-f_error()
+rpath = "/home/jake/renders/"
 
-
-plot_f_actual_shaded()
