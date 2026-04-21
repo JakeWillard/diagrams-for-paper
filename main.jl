@@ -1,4 +1,5 @@
 using LaTeXStrings
+rpath = "/home/jake/renders/"
 
 
 # using Vizagrams
@@ -11,6 +12,7 @@ using PlotlyJS
 include("./formulas.jl")
 # include("./marks.jl")
 # include("./plots.jl")
+include("./plotly-plots.jl")
 
-rpath = "/home/jake/renders/"
 
+field_sheet_iso(0.5)
