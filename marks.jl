@@ -1,480 +1,384 @@
 
-struct FieldLine <: Mark
-    μ :: Float64
-    Δ :: Float64
-    r0 :: Float64
-    w :: Float64
+
+# =====================================================
+
+struct Curve <: Mark
+    pts :: Vector{Tuple{Float64, Float64}}
+    stl :: S
 end
-FieldLine(r0; μ=1.0, Δ=1.0, w=0.01) = FieldLine(μ, Δ, r0, w)
+Curve(pts; stl=S()) = Curve(pts, stl)
 
-function ζ(fl::FieldLine)
+function ζ(c::Curve)
 
-    cy = (fl.r0 / fl.μ)^2
-    Δx = sqrt((fl.Δ/fl.μ)^2 - cy)
-    pts = [(x, fl.μ*sqrt(x^2 + cy)) for x in LinRange(-Δx, Δx, 100)]
-    return Trail(pts=pts, ws=fl.w)
-end
+    xs = [pt[1] for pt in c.pts]
+    ys = [pt[2] for pt in c.pts]
+    N = length(xs)
 
-
-struct Separatrix <: Mark
-    μ :: Float64
-    Δy :: Float64
-    color :: Symbol
-end
-Separatrix(; μ=1.0, Δy=1.0, color=:black) = Separatrix(μ, Δy, color)
-
-function ζ(sep::Separatrix)
-
-    dx = sep.Δy/sep.μ
-    ln1 = S(:strokeDasharray => 3, :stroke => sep.color) * Line([-dx, dx], [-sep.Δy, sep.Δy])
-    ln2 = S(:strokeDasharray => 3, :stroke => sep.color) * Line([dx, -dx], [-sep.Δy, sep.Δy])
-
-    return ln1 + ln2
-end
-
-
-struct LabeledPoint <: Mark
-    x :: Float64
-    y :: Float64
-    ϕ :: Float64
-    label :: LaTeXString
-    fontsize :: Float64
-    dotsize :: Float64
-end
-
-function ζ(lp::LabeledPoint)
-
-    pt = Circle(r=lp.dotsize, c=[lp.x, lp.y])
-    dr = lp.dotsize + lp.fontsize/2.0
-    txt = T(dr*cos(lp.ϕ), dr*sin(lp.ϕ))*T(lp.x, lp.y)*TextMark(text=lp.label, fontsize=lp.fontsize)
-    return pt + txt
-end
-
-
-struct Upstream <: Mark
-    μ :: Float64
-    δ :: Float64
-    Δy :: Float64
-    fontsize :: Float64
-end
-
-function ζ(u::Upstream)
-
-    dashes = S(:strokeDasharray => 7)
-    greyout = S(:opacity => 0.5, :fill => :grey)
-
-    Δy = u.Δy
-    Δx = u.Δy / u.μ
-    δ = u.δ
-    l = δ / u.μ
-
-    drgn = greyout*Rectangle(h=2*δ, w=2*l)
-
-    pts = LabeledPoint(0.0, Δy/2, π/4, L"\mathfrak{q}", u.fontsize, u.fontsize/7)
-    pts += LabeledPoint(0.0, Δy, π/4, L"\mathfrak{u}", u.fontsize, u.fontsize/7)
-    pts += LabeledPoint(Δx/2, Δy/2, π/4, L"\mathfrak{h}", u.fontsize, u.fontsize/7)
-    pts += LabeledPoint(0.0, δ, π/4, L"\mathfrak{m}", u.fontsize, u.fontsize/7)
-
-    ylabel = dashes * Line([0.0, -3*Δx/4], [0.0, 0.0])
-    ylabel += dashes * Line([0.0, 0.0], [0.0, Δy])
-    ylabel += dashes * Line([0.0, -3*Δx/4], [Δy, Δy])
-    ylabel += dashes * Line([-3*Δx/4, -3*Δx/4], [0.0, Δy])
-    ylabel += T(-3*Δx/4, Δy/2) * TextMark(text=L"\Delta y^+", anchor=:w, fontsize=u.fontsize)
-
-    xlabel = dashes * Line([-Δx/2, -Δx/2], [Δy/2, 3*Δy/2])
-    xlabel += dashes * Line([-Δx/2, Δx/2], [Δy/2, Δy/2])
-    xlabel += dashes * Line([Δx/2, Δx/2], [Δy/2, 3*Δy/2])
-    xlabel += dashes * Line([-Δx/2, Δx/2], [3*Δy/2, 3*Δy/2])
-    xlabel += T(0.0, 3*Δy/2) * TextMark(text=L"\Delta x^+", anchor=:s, fontsize=u.fontsize)
-
-
-    sep = Separatrix(μ=u.μ, Δy=Δy, color=:black)
-
-    nfl = 5
-    r0s = LinRange(δ, Δy, nfl+1)[1:end-1]
-    fls = greyout * FieldLine(r0s[1]; μ=u.μ, Δ=Δy, w=0.001)
-    for i=2:nfl
-        fls += greyout * FieldLine(r0s[i]; μ=u.μ, Δ=Δy, w=0.001)
-    end
-    fls += greyout * R(π)*FieldLine(r0s[1]; μ=u.μ, Δ=1.2*Δy, w=0.001)
-    for i=2:nfl
-        fls += greyout * R(π)*FieldLine((1 + 0.05*i)*r0s[i]; μ=u.μ, Δ=1.2*Δy, w=0.001)
-    end
-    #fls += R(π) * fls
-
-    return drgn + pts + ylabel + xlabel + sep + fls
-end
-
-struct Downstream <: Mark
-    μ :: Float64
-    δ :: Float64
-    fontsize :: Float64
-end
-
-function ζ(d::Downstream)
-
-    Δy = 2*d.δ
-    Δx = d.δ/d.μ
-
-    drgn = S(:opacity => 0.3, :fill => :grey) * Rectangle(h=Δy, w=Δx)
-
-    sep = S(:strokeDasharray => 3) * Line([-Δx/2, Δx/2], [0.0, Δy/2])
-    sep += S(:strokeDasharray => 3) * Line([-Δx/2, Δx/2], [0.0, -Δy/2])
-
-    pts = LabeledPoint(-Δx/2, 0.0, π, "x", d.fontsize, d.fontsize/7)
-    pts += LabeledPoint(0.0, 0.0, 3*π/4, L"\mathfrak{p}", d.fontsize, d.fontsize/7)
-    pts += LabeledPoint(0.0, Δy/4, 3*π/4, L"\mathfrak{s}", d.fontsize, d.fontsize/7)
-    pts += LabeledPoint(Δx/2, 0.0, 0.0, L"\mathfrak{o}", d.fontsize, d.fontsize/7)
-
-    dashes = S(:strokeDasharray => 7)
-
-    xlabel = dashes * Line([-Δx/2, Δx/2], [0.0, 0.0])
-    xlabel += dashes * Line([-Δx/2, -Δx/2], [0.0, 0.75*Δy])
-    xlabel += dashes * Line([-Δx/2, Δx/2], [0.75*Δy, 0.75*Δy])
-    xlabel += dashes * Line([Δx/2, Δx/2], [0.0, 0.75*Δy])
-    xlabel += T(0.0, 0.75*Δy) * TextMark(text=L"l", anchor=:s, fontsize=d.fontsize)
-
-    ylabel = dashes * Line([0.0, 0.0], [-Δy/4, Δy/4])
-    ylabel += dashes * Line([0.0, 0.75*Δx], [Δy/4, Δy/4])
-    ylabel += dashes * Line([0.0, 0.75*Δx], [-Δy/4, -Δy/4])
-    ylabel += dashes * Line([0.75*Δx, 0.75*Δx], [-Δy/4, Δy/4])
-    ylabel += T(0.75*Δx, 0.0) * TextMark(text=L"\delta", anchor=:e, fontsize=d.fontsize)
-
-
-    return drgn + sep + pts + xlabel + ylabel
-end
-
-
-struct FDDiagram <: Mark
-    μ :: Float64
-    δ :: Float64
-    Δy :: Float64
-    fontsize :: Float64
-end
-FDDiagram(μ; δ=0.1, Δy=1.0, fontsize=0.15) = FDDiagram(μ, δ, Δy, fontsize)
-
-function ζ(fd::FDDiagram)
-
-    Δx = fd.Δy/fd.μ
-    l = fd.δ/fd.μ
-    xshift = 2Δx + l
-    m =  (fd.Δy - fd.δ) / (xshift + Δx/2 - l)
-    xw = xshift - Δx/2
-    ynw = fd.Δy
-    yne = fd.δ + m*(xshift - Δx/2 - l)
-    ysw = -ynw
-    yse = -yne
-
-    u = Upstream(fd.μ, fd.δ, fd.Δy, fd.fontsize)
-    d = T(xshift, 0.0)*Downstream(fd.μ, fd.Δy, fd.fontsize)
-
-    lnstyle = S(:strokeDasharray => 3, :stroke => :purple)
-    lns = lnstyle * Line([0.0, xw], [fd.δ, ynw])
-    lns += lnstyle * Line([l, xw], [fd.δ, yne])
-    lns += lnstyle * Line([0.0, xw], [-fd.δ, ysw])
-    lns += lnstyle * Line([l, xw], [-fd.δ, yse])
-    lns += lnstyle * Line([0.0, 0.0], [fd.δ, -fd.δ])
-    lns += lnstyle * Line([l, l], [fd.δ, -fd.δ])
-    lns += lnstyle * Line([0.0, l], [fd.δ, fd.δ])
-    lns += lnstyle * Line([0.0, 0.0], [-fd.δ, -fd.δ])
-
-    # xc = (fd.δ + 1.5*fd.Δy)/fd.μ
-    # xw = (fd.δ + fd.Δy)/fd.μ
-    # ynw = fd.Δy/2
-    # ysw = -ynw
-
-    return u + d + lns
-end
-
-
-
-# ===================================
-# ===================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ===================================
-# ===================================
-
-struct FieldSheet <: Mark
-    V :: Float64
-    Δ :: Float64
-    t0 :: Float64
-    w :: Float64
-end
-FieldSheet(t0; V=1.0, Δ=1.0, w=0.01) = FieldSheet(V, Δ, t0, w)
-
-function ζ(fs::FieldSheet)
-
-    pts = [(s, (fs.V*fs.t0 + 1 - sqrt(s^2 + 1))/fs.V) for s in LinRange(-fs.Δ/2, fs.Δ/2, 100)]
-    return Trail(pts=pts, ws=fs.w)
-end
-
-
-struct WorldLine <: Mark
-
-    V :: Float64
-    Δt :: Float64
-    δ :: Float64
-    t0 :: Float64
-    w :: Float64
-end
-WorldLine(t0; V=1.0, Δt=1.0, δ=0.1, w=0.01) = WorldLine(V, Δt, δ, t0, w)
-
-function ζ(wl::WorldLine)
-
-    f(s) = 0.5*(tanh(s/wl.δ) + 1)
-    t(s) = wl.t0 + (1 - f(s))*(wl.δ^2/wl.V)/s - f(s)*s/wl.V
-
-    smax = wl.Δt * wl.V/2
-    smin = wl.δ^2 / (wl.δ + smax)
-    
-    pts1 = [(s, t(s)) for s in LinRange(smin, smax, 100)]
-    pts2 = [(-s, t(s)) for s in LinRange(smin, smax, 100)]
-
-    return Trail(pts=pts1, ws=wl.w) + Trail(pts=pts2, ws=wl.w)
-end
-
-
-struct RateIllustration <: Mark
-
-    V :: Float64
-
-end
-
-function ζ(r::RateIllustration)
-
-    Δt = (sqrt(1.25)-1)/r.V
-
-    fs = FieldSheet(0.0, V=r.V, w=0.003)
-    fs += FieldSheet(Δt, V=r.V, w=0.003)
-    fs += T(0.5, Δt/20)*TextMark(text=L"\psi_0", anchor=:se, fontsize=Δt/10)
-    fs += T(0.5, Δt/20-Δt)*TextMark(text=L"\psi_0 \pm \Delta \psi", anchor=:se, fontsize=Δt/10)
-
-    X = S(:stroke => :darkred, :strokeDasharray => 7) * Line([0.0, 0.0], [0.0, Δt])
-    Y = S(:stroke => :darkgreen, :strokeDasharray => 7) * Line([-0.5, 0.5], [0.0, 0.0])
-
-    clabels = S(:fill => :darkred)*T(0.0, Δt/2)*TextMark(text=L"X(\psi)", anchor=:w, fontsize=Δt/10)
-    clabels += S(:fill => :darkgreen)*T(0.0, -Δt/20)*TextMark(text=L"Y", anchor=:n, fontsize=Δt/10)
-
-    dlabels = S(:strokeDasharray => 3)*Line([0.0, 0.75], [Δt, Δt])
-    dlabels += S(:strokeDasharray => 3)*Line([0.5, 0.75], [0.0, 0.0])
-    dlabels += S(:strokeDasharray => 3)*Line([0.75, 0.75], [0.0, Δt])
-    dlabels += T(0.75, Δt/2)*TextMark(text=L"w_t", anchor=:e, fontsize=Δt/10)
-    dlabels += S(:strokeDasharray => 3)*Line([-0.5, -0.5], [0.0, -Δt/2])
-    dlabels += S(:strokeDasharray => 3)*Line([0.5, 0.5], [0.0, -Δt/2])
-    dlabels += S(:strokeDasharray => 3)*Line([-0.5, 0.5], [-Δt/2, -Δt/2])
-    dlabels += T(0.0, -Δt/2)*TextMark(text=L"2w_y", anchor=:n, fontsize=Δt/10)
-
-    return fs + X + Y + clabels + dlabels
-end
-
-
-# struct ConformalDiagram <: Mark
-#     Cp :: Float64
-#     Cm :: Float64
-#     Δt :: Float64
-#     Δ̄s :: Float64
-#     fontsize :: Float64
-# end
-# ConformalDiagram(Cp, Cm; Δt=1.0, Δ̄s=1.0, fontsize=0.1) = ConformalDiagram(Cp, Cm, Δt, Δ̄s, fontsize)
-
-# function ζ(cd::ConformalDiagram)
-
-#     axes = Line([-cd.Δ̄s, cd.Δ̄s], [0.0, 0.0])
-#     axes += Line([0.0, 0.0], [0.0, cd.Δt])
-#     axes += T(cd.Δ̄s, 0.0)*TextMark(text="̂h", anchor=:ne, fontsize=cd.fontsize)
-#     axes += T(0.0, cd.Δt)*TextMark(text=L"t", anchor=:nw, fontsize=cd.fontsize)
-
-#     return axes
-# end
-
-
-
-# ===============================
-# ===============================
-
-struct RGeodesic <: Mark
-    K :: Float64
-    d :: Float64
-end
-
-function ζ(rg::RGeodesic)
-
-    sty = S(:strokeDasharray => 3)
-
-    if rg.K == 0 || rg.d == 0
-        return sty*Line([-1.0, 1.0], [rg.d, rg.d])
-    end
-
-    r = 1/sqrt(rg.d*abs(rg.K))
-    θ = atan(1/r)
-
-    if rg.K > 0
-        output = sty*Arc(r, r, [0.0, rg.d - r], 0.0, π/2-θ, π/2+θ)
-    else
-        output = sty*Arc(r, r, [0.0, r + rg.d], 0.0, 3*π/2-θ, 3*π/2+θ)
+    output = c.stl * Line(xs[1:2], ys[1:2])
+    for i=2:N-1
+        output += c.stl * Line(xs[i:i+1], ys[i:i+1])
     end
 
     return output
 end
+
+
+# =====================================================
+
+
+struct Reconnection <: Mark
+    μ :: Float64
+    δ :: Float64
+    fl_stl :: S
+    diff_stl :: S
+end
+Reconnection(μ, δ; fl_stl=S(), diff_stl=S()) = Reconnection(μ, δ, fl_stl, diff_stl)
+
+function fl_pts(m, y0, Δ)
+
+    cy = (y0 / m)^2
+    Δx = sqrt((Δ/m)^2 - cy)
+    return [(x, m*sqrt(x^2 + cy)) for x in LinRange(-Δx, Δx, 100)]
+end
+
+function ζ(r::Reconnection)
+
+    Δx = 1 / r.μ
+    l = r.δ / r.μ
+
+    diffusion_region = r.diff_stl * Rectangle(h=2*r.δ, w=2*l)
+
+    y0s = LinRange(r.δ, 1.0, 5)
+    field_lines = Curve(fl_pts(r.μ, y0s[1], 1.0), stl=r.fl_stl)
+    for y0 in y0s[2:end]
+        field_lines += Curve(fl_pts(r.μ, y0, 1.0), stl=r.fl_stl)
+    end
+    for x0 in LinRange(l, 1/r.μ, 5)
+        field_lines += R(π/2)*Curve(fl_pts(1/r.μ, x0, 1.0/r.μ), stl=r.fl_stl)
+    end
+    field_lines += R(π) * field_lines
+
+
+    return diffusion_region + field_lines
+end
+
+
+# =====================================================
+
+
+struct FDCross <: Mark
+
+    m :: Float64
+    ymin :: Float64
+    Δ :: Float64
+    r :: Float64
+    stl :: S
+
+end
+FDCross(m, Δ, r; ymin=0.0, stl=S()) = FDCross(m, ymin, Δ, r, stl)
+
+function ζ(c::FDCross)
+
+    ym = c.Δ/2
+    xm = ym / c.m
+
+    output = Curve([(0.0, c.ymin), (0.0, c.Δ)], stl=c.stl)
+    output += Curve([(-xm, ym), (xm, ym)], stl=c.stl)
+
+    output += Circle(r=c.r, c=[0.0, c.ymin])
+    output += Circle(r=c.r, c=[0.0, ym])
+    output += Circle(r=c.r, c=[xm, ym])
+    output += Circle(r=c.r, c=[-xm, ym])
+    output += Circle(r=c.r, c=[0.0, c.Δ])
+
+    return output
+end
+
+# =====================================================
+
+struct ZoomIn <: Mark
+
+    μ :: Float64
+    δ :: Float64
+    Δx :: Float64
+    zstl :: S
+    dstl :: S
+end
+ZoomIn(μ, δ, Δx; zstl=S(), dstl=S()) = ZoomIn(μ, δ, Δx, zstl, dstl)
+
+function ζ(z::ZoomIn)
+
+    l = z.δ/z.μ
+    m1 = (1 - z.δ)/z.Δx
+    m2 = (1 - z.δ)/(z.Δx + (1 - z.δ)/z.μ)
+    y1 = z.δ + m1*z.Δx
+    y2 = z.δ + m2*z.Δx
+
+
+    output = Curve([(0.0, z.δ), (z.Δx, y1)], stl=z.zstl)
+    output += Curve([(l, z.δ), (z.Δx, y2)], stl=z.zstl)
+    output += Curve([(0.0, -z.δ), (z.Δx, -y1)], stl=z.zstl)
+    output += Curve([(l, -z.δ), (z.Δx, -y2)], stl=z.zstl)
+    output += Curve([(0.0, z.δ), (l, z.δ), (l, -z.δ), (0.0, -z.δ), (0.0, z.δ)], stl=z.zstl)
+    output += T(z.Δx + 1.0/(2*z.μ), 0.0) * z.dstl * Rectangle(h=2.0, w=1.0/z.μ)
+
+    return output
+end
+
+
+# =====================================================
+
+
+struct FlowArrow <: Mark
+    h :: Float64
+    w :: Float64
+    stl :: S
+end
+FlowArrow(; h=2.0, w=1.0, stl=S()) = FlowArrow(h, w, stl)
+
+function ζ(a::FlowArrow)
+
+    w = a.w
+    h = a.h
+
+    shape = Polygon([(w, 0.0), 
+                    (0.5*w, 0.7*h), 
+                    (1.0*w, 0.7*h), 
+                    (0.0, h), 
+                    (-w, 0.7*h),
+                    (-0.5*w, 0.7*h),
+                    (-w, 0.0)])
+
+    return a.stl * shape
+end
+
+
+# =====================================================
+
+
+struct InflowOutflow <: Mark
+
+    μ :: Float64
+    δ :: Float64
+    fl_stl :: S
+    diff_stl :: S
+    arr_stl :: S
+
+end
+InflowOutflow(μ, δ; fl_stl=S(), diff_stl=S(), arr_stl=S()) = InflowOutflow(μ, δ, fl_stl, diff_stl, arr_stl)
+
+function ζ(f::InflowOutflow)
+
+    rec = Reconnection(f.μ, f.δ, fl_stl=f.fl_stl, diff_stl=f.diff_stl)
+    l = f.δ/f.μ
+
+    arrows = T(0.0, 1+2*f.δ)*R(π)*FlowArrow(h=1.0, w=l)
+    arrows += T(2*l, 0.0)*R(3*π/2)*FlowArrow(h=1.0, w=f.δ)
+    arrows += R(π) * arrows
+    
+
+    return rec + arrows
+end
+
+
+# =====================================================
+
+
+struct Bracket <: Mark
+    h :: Float64
+    w :: Float64
+    stl :: S
+end
+Bracket(; h=1.0, w=1.0, stl=S()) = Bracket(h, w, stl)
+
+function ζ(b::Bracket)
+
+    xs = LinRange(-1, 1, 101)
+    ys = [1 - tanh(10*abs(x)) - exp(10*(abs(x) - 1)) for x in xs]
+    pts = [(b.w*xs[i]/2, b.h*ys[i]/2) for i=1:101]
+
+    return Curve(pts, stl=b.stl)
+end
+
+
+
+
+# =====================================================
+
+
+
+struct RateGeometry <: Mark
+    V :: Float64
+    fs_stl :: S 
+    x_stl :: S
+    y_stl :: S
+end
+RateGeometry(V; fs_stl=S(), x_stl=S(), y_stl=S()) = RateGeometry(V, fs_stl, x_stl, y_stl)
+
+
+function ζ(g::RateGeometry)
+
+    Δt = abs((1 - sqrt(0.5^2 + 1))/g.V)
+    pts_1 = [(y, (1 - sqrt(y^2 + 1))/g.V) for y in LinRange(-0.6, 0.6, 100)]
+    pts_2 = [(y, t-Δt) for (y,t) in pts_1[30:70]]
+
+    field_sheets = Curve(pts_1, stl=g.fs_stl)
+    field_sheets += Curve(pts_2, stl=g.fs_stl)
+
+    X = Curve([(0.0, 0.0), (0.0, -Δt)], stl=g.x_stl)
+    Y = Curve([(-0.5, -Δt), (0.5, -Δt)], stl=g.y_stl)
+
+    return field_sheets + X + Y
+end
+
+
+# =====================================================
+
+
+struct CoordinateAxes <: Mark
+    hz :: Float64
+    stl :: S
+end
+CoordinateAxes(; hz=0.05, stl=S()) = CoordinateAxes(hz, stl)
+
+function ζ(a::CoordinateAxes)
+
+    X = Arrow(pts=[(0.0, 0.0), (1.0, 0.0)], headsize=a.hz)
+    Y = Arrow(pts=[(0.0, 0.0), (0.0, 1.0)], headsize=a.hz)
+
+    return X + Y
+end
+
+# =====================================================
+
+struct RotatedAxes <: Mark
+    θ :: Float64
+    r :: Float64
+    hz :: Float64
+    stl_1 :: S
+    stl_2 :: S
+    arc_stl :: S
+end
+RotatedAxes(θ; r=0.2, hz=0.05, stl_1=S(), stl_2=S(), arc_stl=S()) = RotatedAxes(θ, r, hz, stl_1, stl_2, arc_stl)
+
+function ζ(a::RotatedAxes)
+
+    output = CoordinateAxes(hz=a.hz, stl=a.stl_1)
+    output += R(a.θ)*CoordinateAxes(hz=a.hz, stl=a.stl_2)
+
+    output += Curve([(a.r*cos(t), a.r*sin(t)) for t in LinRange(0, a.θ, 100)], stl=a.arc_stl)
+    output += Curve([(a.r*cos(t), a.r*sin(t)) for t in LinRange(π/2, π/2 + a.θ, 100)], stl=a.arc_stl)
+
+    return output
+end
+
+
+
+
+# =====================================================
 
 
 struct GeodesicGrid <: Mark
     K :: Float64
-    n :: Int64
+    N :: Int64
+    stl :: S
 end
-GeodesicGrid(K; n=4) = GeodesicGrid(K, n)
+GeodesicGrid(K; N=10, stl=S()) = GeodesicGrid(K, N, stl)
 
-function ζ(gg::GeodesicGrid)
+function geo_pts(K, y0)
 
-    ds = LinRange(0.0, 1.0, gg.n)
-    curves = RGeodesic(gg.K, ds[1])
-    for i=2:gg.n
-        curves += RGeodesic(gg.K, ds[i])
+    xmax = K < 0 ? sqrt(2(1 - abs(y0))/(abs(K)*abs(y0))) : 1.0
+    xmax = xmax > 1.0 ? 1.0 : xmax
+    return [(x,y0 - 0.5*K*y0*x^2) for x in LinRange(-xmax, xmax, 60)]
+end
+
+function ζ(g::GeodesicGrid)
+
+    y0s = LinRange(-1, 1, g.N)
+    grd = Curve(geo_pts(g.K, y0s[1]), stl=g.stl)
+    for y0 in y0s[2:end]
+        grd += Curve(geo_pts(g.K, y0), stl=g.stl)
     end
+    grd += R(π/2) * grd
 
-    curves += R(π)*curves
-    curves += R(π/2)*curves
-
-    return curves
+    return grd
 end
 
 
-struct TensionVisual <: Mark
-    K :: Float64
-    δ :: Float64
-    Δy :: Float64
-    dcolor :: Symbol
-    flcolor :: Symbol
-end
-TensionVisual(K; δ=0.1, Δy=0.05, dcolor=:grey, flcolor=:purple) = TensionVisual(K, δ, Δy, dcolor, flcolor)
+# =====================================================
 
-function ζ(tv::TensionVisual)
-
-    grd = GeodesicGrid(tv.K)
-    drgn = S(:fill => tv.dcolor, :opacity => 0.5)*Rectangle(h=tv.δ, w=2.0)
-
-    lns = S(:stroke => tv.flcolor) * Arrow([-1.0, 1.0], [tv.δ+tv.Δy, tv.δ+tv.Δy], headsize=tv.δ/7)
-    lns += T(0.0, tv.Δy)*lns
-    lns += T(0.0, 2*tv.Δy)*lns
-    lns += R(π)*lns
-
-    return grd + drgn + lns
+struct Dish <: Mark
+    r1 :: Float64
+    r2 :: Float64
+    l :: Float64
+    stl :: S
 end
 
 
-# ================================
-# ================================
+function ζ(d::Dish)
 
+    
+    Δθ = π/3
+    dsh_pts = [(d.r2*cos(t), d.r2*sin(t)) for t in LinRange(3*π/2-Δθ, 3*π/2+Δθ, 100)]
+    push!(dsh_pts, dsh_pts[1])
 
+    tip = Circle(r=d.r1)
+    ant = Line([0.0, 0.0], [0.0, dsh_pts[1][2]])
+    dsh = Polygon(dsh_pts)
 
-
-
-
-
-# ===============================
-# ===============================
-
-
-struct SGeodesic <: Mark
-    r :: Float64
-    θ :: Float64
-    w :: Float64
-end
-
-function ζ(sg::SGeodesic)
-
-    Grrr(r) = 1/(2*r*(1-r))
-    Grtt(r) = 1 - r
-    Gtrt(r) = 1/r
-
-    rs = sg.r*ones(2)
-    ts = zeros(2)
-
-    rdots = sqrt(1 - 1/sg.r)*cos(sg.θ)*ones(2)
-    tdots = (sin(sg.θ)/sg.r)*ones(2)
-
-    pts = []
-
-    l = sg.r^(3/2) / 2.0
-    ds = l/500
-    for i=1:500
-        rddots = -Grrr.(rs).*(rdots.^2) - Grtt.(rs).*(tdots.^2)
-        tddots = -2*Gtrt.(rs).*rdots.*tdots
-        rdots[2] = rdots[1] + ds*(rddots[1] + rddots[2])/2
-        tdots[2] =  tdots[1] + ds*(tddots[1] + tddots[2])/2
-        rs[2] = rs[1] + ds*(rdots[1] + rdots[2])/2
-        ts[2] = ts[1] + ds*(tdots[1] + tdots[2])/2
-
-        push!(pts, (rs[2]*cos(ts[2]), rs[2]*sin(ts[2])))
-
-        if rs[2] <= 1.0
-            break
-        end
-
-        rs[1] = rs[2]
-        ts[1] = ts[2]
-        rdots[1] = rdots[2]
-        tdots[1] = tdots[2]
-    end
-
-    return Trail(pts=pts, ws=sg.w)
+    return d.stl*tip + ant + d.stl*dsh
 end
 
 
-struct CurvatureVisual <: Mark
-    r :: Float64
-    ϕ :: Float64
-    n :: Int64
-    w :: Float64
-    fs :: Float64
+# =====================================================
+
+
+struct ConformalSpace <: Mark
+    a :: Float64
+    St :: Float64
+    Δ̄y :: Float64
+    N :: Int64
+    axis_stl :: S
+    dpts_stl :: S
 end
-CurvatureVisual(r; ϕ=0.0, n=4, w=0.005, fs=0.1) = CurvatureVisual(r, ϕ, n, w, fs)
+ConformalSpace(a, St; Δ̄y=1.0, N=8, axis_stl=S(), dpts_stl=S()) = ConformalSpace(a, St, Δ̄y, N, axis_stl, dpts_stl)
 
-function ζ(cv::CurvatureVisual)
+function ζ(s::ConformalSpace)
 
+    output = s.axis_stl * Line([0.0, 0.0], [0.0, 1.0])
+    output += s.axis_stl * Line([-s.Δ̄y, s.Δ̄y], [0.0, 0.0])
 
-    ϵ = 1.5*cv.fs / (cv.r)
-    output = S(:strokeDasharray => 7)*Arc(cv.r, cv.r, [0.0, 0.0], 0.0, -π/2+ϵ, 3*π/2-ϵ)
+    y = LinRange(-1.0, 1.0, s.N)
+    ybars = y .- 0.5*s.a*y.^2 .+ (s.St - s.a^2)*y.^3 /6
 
-    output += T(0.0, -cv.r)*TextMark(text=L"%$(cv.r)r_s", fontsize=cv.fs)
-
-    for θ in LinRange(0.0, 2*π, cv.n+1)[2:end]
-        output += R(cv.ϕ) * SGeodesic(cv.r, θ, cv.w)
+    for ybar in ybars
+        output += s.dpts_stl * Line([ybar, ybar], [0.0, 1.0])
     end
 
     return output
 end
 
-struct CurvScaleDiagram <: Mark
-    rmin :: Float64
-    rmax :: Float64
-    n :: Int64
-    w :: Float64
-    fs :: Float64
+
+
+
+# =====================================================
+
+struct Radii <: Mark
+    rs :: Vector{Float64}
+    Δx :: Float64
+    stl :: S
 end
-CurvScaleDiagram(rmin, rmax; n=4, w=0.01, fs=0.1) = CurvScaleDiagram(rmin, rmax, n, w, fs)
+Radii(rs, Δx; stl=S()) = Radii(rs, Δx, stl)
+Radii(r::Float64, Δx; stl=S()) = Radii([r], Δx, stl)
 
-function ζ(csd::CurvScaleDiagram)
+function ζ(rad::Radii)
 
-    rs = LinRange(csd.rmin, csd.rmax, 3)
-
-    output = Circle()
-    output += CurvatureVisual(rs[1], 0.0, csd.n, csd.w, csd.fs)
-    output += CurvatureVisual(rs[2], π/2, csd.n, csd.w, csd.fs)
-    output += CurvatureVisual(rs[3], π, csd.n, csd.w, csd.fs)
+    output = Circle(r=1)
+    for r in rad.rs
+        θ = rad.Δx/r
+        pts = [(r*cos(t), r*sin(t)) for t in LinRange(-π/2+θ/2, 3*π/2-θ/2, 100)]
+        output += Curve(pts, stl=rad.stl)
+    end
 
     return output
 end

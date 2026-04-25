@@ -1,18 +1,28 @@
 using LaTeXStrings
+using LinearAlgebra
 rpath = "/home/jake/renders/"
 
 
-# using Vizagrams
-# import Vizagrams: ζ
+using Vizagrams
+import Vizagrams: ζ
 
 # using Plots
 
-using PlotlyJS
+# using PlotlyJS
 
 include("./formulas.jl")
-# include("./marks.jl")
-# include("./plots.jl")
-include("./plotly-plots.jl")
+include("./marks.jl")
+include("./diagrams.jl")
+
+tension_illustration()
 
 
-field_sheet_iso(0.5)
+
+
+
+finite_difference_schema()
+
+alpha_beta_definitions()
+
+
+rate_illustration_diagram()
