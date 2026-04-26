@@ -14,6 +14,17 @@ include("./formulas.jl")
 include("./marks.jl")
 include("./diagrams.jl")
 
+
+f_visualizations()
+
+
+
+
+
+light_diagram()
+
+
+
 tension_illustration()
 
 

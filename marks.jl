@@ -162,18 +162,19 @@ struct InflowOutflow <: Mark
     δ :: Float64
     fl_stl :: S
     diff_stl :: S
-    arr_stl :: S
+    in_stl :: S
+    out_stl :: S
 
 end
-InflowOutflow(μ, δ; fl_stl=S(), diff_stl=S(), arr_stl=S()) = InflowOutflow(μ, δ, fl_stl, diff_stl, arr_stl)
+InflowOutflow(μ, δ; fl_stl=S(), diff_stl=S(), in_stl=S(), out_stl=S()) = InflowOutflow(μ, δ, fl_stl, diff_stl, in_stl, out_stl)
 
 function ζ(f::InflowOutflow)
 
     rec = Reconnection(f.μ, f.δ, fl_stl=f.fl_stl, diff_stl=f.diff_stl)
     l = f.δ/f.μ
 
-    arrows = T(0.0, 1+2*f.δ)*R(π)*FlowArrow(h=1.0, w=l)
-    arrows += T(2*l, 0.0)*R(3*π/2)*FlowArrow(h=1.0, w=f.δ)
+    arrows = T(0.0, 1+2*f.δ)*R(π)*FlowArrow(h=1.0, w=l, stl=f.in_stl)
+    arrows += T(2*l, 0.0)*R(3*π/2)*FlowArrow(h=1.0, w=f.δ, stl=f.out_stl)
     arrows += R(π) * arrows
     
 
@@ -310,9 +311,11 @@ end
 struct Dish <: Mark
     r1 :: Float64
     r2 :: Float64
-    l :: Float64
-    stl :: S
+    sld_stl :: S
+    ln_stl :: S
 end
+Dish(r1, r2; sld_stl=S(), ln_stl=S()) = Dish(r1, r2, sld_stl, ln_stl)
+Dish(r; sld_stl=S(), ln_stl=S()) = Dish(r/4, r, sld_stl, ln_stl)
 
 
 function ζ(d::Dish)
@@ -322,11 +325,56 @@ function ζ(d::Dish)
     dsh_pts = [(d.r2*cos(t), d.r2*sin(t)) for t in LinRange(3*π/2-Δθ, 3*π/2+Δθ, 100)]
     push!(dsh_pts, dsh_pts[1])
 
-    tip = Circle(r=d.r1)
-    ant = Line([0.0, 0.0], [0.0, dsh_pts[1][2]])
-    dsh = Polygon(dsh_pts)
+    tip = d.sld_stl * Circle(r=d.r1)
+    ant = d.ln_stl * Line([0.0, 0.0], [0.0, dsh_pts[1][2]])
+    dsh = d.sld_stl * Polygon(dsh_pts)
 
-    return d.stl*tip + ant + d.stl*dsh
+    return tip + ant + dsh
+end
+
+
+# =====================================================
+
+struct LightPaths <: Mark
+    a :: Float64
+    St :: Float64
+    r :: Float64
+    box_size :: Vector{Float64}
+    ax_stl :: S
+    dist_stl :: S
+    dsh_stl :: S
+    pth_stl :: S
+end
+LightPaths(a, St, r, box_size; ax_stl=S(), dist_stl=S(), dsh_stl=S(), pth_stl=S()) = LightPaths(a, St, r, box_size, ax_stl, dist_stl, dsh_stl, pth_stl)
+
+function ζ(p::LightPaths)
+
+    ybar(y) = y - 0.5*p.a*y^2 + (p.St - p.a^2)*y^3 /6
+    ybp = ybar(1.0)
+    ybm = ybar(-1.0)
+    Δy, tmax = p.box_size
+
+    margin = 1.2*p.r
+    output = p.ax_stl * Line([-Δy/2-margin, -Δy/2-margin], [-margin, tmax])
+    output += p.ax_stl * Line([-Δy/2-margin, Δy/2], [-margin, -margin])
+
+    for yb in [ybar(y) for y in LinRange(-1.0, 1.0, 8)]
+        output += p.dist_stl * Line([yb, yb], [-margin, tmax])
+    end
+
+    dsh = p.dsh_stl * Dish(p.r)
+    output += dsh
+    output += T(ybp, ybp) * R(π/4) * dsh
+    output += T(ybm, -ybm) * R(-π/4) * dsh
+
+    θ = abs(ybm) == abs(ybp) ? 0.0 : π/4
+    output += T(0.0, 2*abs(ybm)) * R(π - θ) * dsh
+    output += T(0.0, 2*abs(ybp)) * R(π + θ) * dsh
+
+    output += Curve([(0.0, 0.0), (ybp, ybp), (0.0, 2*ybp)], stl=p.pth_stl)
+    output += Curve([(0.0, 0.0), (ybm, -ybm), (0.0, -2*ybm)], stl=p.pth_stl)
+
+    return output
 end
 
 
@@ -358,7 +406,27 @@ function ζ(s::ConformalSpace)
     return output
 end
 
+# =====================================================
 
+
+struct LightSignals <: Mark
+    a :: Float64
+    St :: Float64
+    stl :: S
+end
+LightSignals(a, St; stl=S()) = LightSignals(a, St, stl)
+
+function ζ(s::LightSignals)
+
+    ybar(y) = y - 0.5*s.a*y^2 + (s.St - s.a^2)*y^3 /6
+    
+    output = s.stl * Line([0.0, ybar(1.0)], [0.0, ybar(1.0)])
+    output += s.stl * Line([ybar(1.0), 0.0], [ybar(1.0), 2*ybar(1.0)])
+    output += s.stl * Line([0.0, ybar(-1.0)], [0.0, -ybar(-1.0)])
+    output += s.stl * Line([ybar(-1.0), 0.0], [-ybar(-1.0), -2*ybar(-1.0)])
+
+    return output
+end
 
 
 # =====================================================
