@@ -1,18 +1,36 @@
 using LaTeXStrings
 using LinearAlgebra
+using ForwardDiff
 rpath = "/home/jake/renders/"
 
 
-using Vizagrams
-import Vizagrams: ζ
+# using Vizagrams
+# import Vizagrams: ζ
 
-# using Plots
+using Plots
 
 # using PlotlyJS
 
-include("./formulas.jl")
-include("./marks.jl")
-include("./diagrams.jl")
+# include("./formulas.jl")
+# include("./marks.jl")
+# include("./diagrams.jl")
+
+include("./rcm.jl")
+
+conf = EMConfig((x,y) -> x^4 - y^4, 1.0)
+
+
+Vf(0.0, 0.0, 0.01, conf)
+
+
+
+cm(conf)
+
+pts, l = exponential_map(0.0, 0.1, 0.01, conf)
+l
+plot_exponential_map(0.0, 0.4, 0.01, conf)
+
+
 
 
 f_visualizations()
