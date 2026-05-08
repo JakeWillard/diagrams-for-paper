@@ -48,18 +48,18 @@ function ζ(r::Reconnection)
 
     diffusion_region = r.diff_stl * Rectangle(h=2*r.δ, w=2*l)
 
-    y0s = LinRange(r.δ, 1.0, 5)
+    y0s = LinRange(r.δ, 1.0, 5)[2:end]
     field_lines = Curve(fl_pts(r.μ, y0s[1], 1.0), stl=r.fl_stl)
     for y0 in y0s[2:end]
         field_lines += Curve(fl_pts(r.μ, y0, 1.0), stl=r.fl_stl)
     end
-    for x0 in LinRange(l, 1/r.μ, 5)
+    for x0 in LinRange(l, 1/r.μ, 5)[2:end]
         field_lines += R(π/2)*Curve(fl_pts(1/r.μ, x0, 1.0/r.μ), stl=r.fl_stl)
     end
     field_lines += R(π) * field_lines
 
 
-    return diffusion_region + field_lines
+    return field_lines
 end
 
 

@@ -4,18 +4,23 @@ using ForwardDiff
 rpath = "/home/jake/renders/"
 
 
-# using Vizagrams
-# import Vizagrams: ζ
+using Vizagrams
+import Vizagrams: ζ
 
-using Plots
+# using Plots
 
 # using PlotlyJS
 
-# include("./formulas.jl")
-# include("./marks.jl")
-# include("./diagrams.jl")
+include("./formulas.jl")
+include("./marks.jl")
+include("./diagrams.jl")
 
-include("./rcm.jl")
+only_geodesic_grid()
+only_fieldlines()
+
+
+
+# include("./rcm.jl")
 
 conf = EMConfig((x,y) -> x^4 - y^4, 1.0)
 

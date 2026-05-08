@@ -91,6 +91,30 @@ function tension_illustration()
 end
 
 
+function only_geodesic_grid()
+
+    grd_stl = S(:strokeDasharray => 1, :opacity=>1.0)
+    ln_stl = S(:stroke => :blue)
+    diff_stl = S(:opacity => 0.3, :fill => :orange)
+
+    grds = GeodesicGrid(0.0, stl=grd_stl)
+    grds += T(2.4, 0.0)*GeodesicGrid(0.7, stl=grd_stl)
+    grds += T(4.8, 0.0)*GeodesicGrid(-2.0, stl=grd_stl)
+
+    output = grds
+    savefig(output, filename="grid_only.png", height=5000, directory=rpath)
+    return draw(output)
+end
+
+
+function only_fieldlines()
+
+    r = Reconnection(0.6, 0.1, fl_stl=S(:opacity=>0.5, :stroke=>:blue))
+    savefig(r, filename="fl_only.png", height=5000, directory=rpath)
+    return draw(r)
+end
+
+
 function light_diagram()
 
     Δx = 5.5
