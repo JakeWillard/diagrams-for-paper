@@ -4,16 +4,26 @@ using ForwardDiff
 rpath = "/home/jake/renders/"
 
 
-using Vizagrams
-import Vizagrams: ζ
+# using Vizagrams
+# import Vizagrams: ζ
 
-# using Plots
+using Plots
 
 # using PlotlyJS
 
 include("./formulas.jl")
-include("./marks.jl")
-include("./diagrams.jl")
+# include("./marks.jl")
+# include("./diagrams.jl")
+include("./plots.jl")
+
+plot_difference()
+
+
+
+savefig(plot_rate(0.5), rpath * "new_rates.png")
+
+savefig(plot_lambda(), rpath * "lambdas.png")
+
 
 
 new_tension_diagram()
