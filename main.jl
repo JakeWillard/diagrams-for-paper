@@ -15,6 +15,15 @@ include("./formulas.jl")
 include("./marks.jl")
 include("./diagrams.jl")
 
+
+new_tension_diagram()
+
+
+
+
+
+
+
 only_geodesic_grid()
 only_fieldlines()
 
