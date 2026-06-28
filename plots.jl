@@ -58,7 +58,7 @@ function plot_difference()
     end
 
     xlabel!(p, L"\mu")
-    title!(p, L"$\mathcal{R}$ (solid) and $V_d|_{\mathfrak{u}}$ (dashed)")
+    #title!(p, L"$\mathcal{R}$ (solid) and $V_d|_{\mathfrak{u}}$ (dashed)")
 
 
 

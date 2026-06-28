@@ -16,7 +16,7 @@ include("./formulas.jl")
 # include("./diagrams.jl")
 include("./plots.jl")
 
-plot_difference()
+savefig(plot_difference(), rpath * "diff_no_title.png")
 
 
 
