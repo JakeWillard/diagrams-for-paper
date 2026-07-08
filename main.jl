@@ -4,17 +4,32 @@ using ForwardDiff
 rpath = "/home/jake/renders/"
 
 
-# using Vizagrams
-# import Vizagrams: ζ
+using Vizagrams
+import Vizagrams: ζ
 
-using Plots
+# using Plots
 
 # using PlotlyJS
 
-include("./formulas.jl")
-# include("./marks.jl")
-# include("./diagrams.jl")
-include("./plots.jl")
+# include("./formulas.jl")
+include("./marks.jl")
+include("./diagrams.jl")
+# include("./plots.jl")
+
+only_tension_fieldlines()
+
+only_fieldlines()
+
+
+
+
+draw(Reconnection(0.6, 0.1))
+
+
+
+
+
+
 
 savefig(plot_difference(), rpath * "diff_no_title.png")
 
