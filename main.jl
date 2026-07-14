@@ -1,22 +1,53 @@
 using LaTeXStrings
 using LinearAlgebra
-using ForwardDiff
+# using ForwardDiff
 rpath = "/home/jake/renders/"
 
 
-using Vizagrams
-import Vizagrams: ζ
+# using Vizagrams
+# import Vizagrams: ζ
 
-# using Plots
+using Plots
 
 # using PlotlyJS
 
-# include("./formulas.jl")
-include("./marks.jl")
-include("./diagrams.jl")
-# include("./plots.jl")
+include("./formulas.jl")
+# include("./marks.jl")
+# include("./diagrams.jl")
+include("./plots.jl")
 
-only_tension_fieldlines()
+
+savefig(plot_lambda(), rpath*"lambda.png")
+
+
+
+plot_rate(0.3)
+savefig(plot_rate(1.0), rpath*"rates.png")
+
+savefig(plot_difference(), rpath*"thick_difference.png")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+only_tension_fieldlines("tension_only_fl_1.png", 0.005)
+only_tension_fieldlines("tension_only_fl_2.png", 0.0075)
+only_tension_fieldlines("tension_only_fl_3.png", 0.01)
 
 only_fieldlines()
 

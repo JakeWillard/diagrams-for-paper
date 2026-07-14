@@ -9,25 +9,25 @@ function plot_rate(VA)
     C_pos = [0.0, 0.1, 0.2, 0.3, 0.4]
     C_all = [-0.4, -0.2, 0.0, 0.2, 0.4]
 
-    pa = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[1])")
+    pa = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[1])", dpi=600, linewidth=2.0, legend=:topleft)
     for i=2:5
-        plot!(pa, μs, [rate(μ, VA, C_pos[i], 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[i])")
+        plot!(pa, μs, [rate(μ, VA, C_pos[i], 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[i])", dpi=600, linewidth=2.0, legend=:topleft)
     end
     
-    pS = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[1])")
-    pK = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[1])")
-    pQ = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{Q}=%$(C_all[1])")
+    pS = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft)
+    pK = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft)
+    pQ = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{Q}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft)
     for i=2:5
-        plot!(pS, μs, [rate(μ, VA, 0.0, C_all[i], 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[i])")
-        plot!(pK, μs, [rate(μ, VA, 0.0, 0.0, C_all[i], 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[i])")
-        plot!(pQ, μs, [rate(μ, VA, 0.0, 0.0, 0.0, C_all[i]) for μ in μs], label=L"\bar{Q}=%$(C_all[i])")
+        plot!(pS, μs, [rate(μ, VA, 0.0, C_all[i], 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft)
+        plot!(pK, μs, [rate(μ, VA, 0.0, 0.0, C_all[i], 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft)
+        plot!(pQ, μs, [rate(μ, VA, 0.0, 0.0, 0.0, C_all[i]) for μ in μs], label=L"\bar{Q}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft)
     end
 
     for p in [pa, pS, pK, pQ]
 
         xlabel!(p, L"\mu")
         ylabel!(p, L"\mathcal{R}")
-        ylims!(p, 0.0, 0.25)
+        ylims!(p, 0.0, 0.5)
     end
 
     title!(pa, L"\bar{S}=\mathcal{\bar{K}}=\bar{Q}=0")
@@ -48,13 +48,13 @@ function plot_difference()
     VAs = [0.2, 0.4, 0.6, 0.8, 1.0]
     colors = [:blue, :red, :green, :black, :purple]
 
-    p = plot(μs, [rate(μ, VAs[1], 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"V_A=0.2", color=colors[1])
+    p = plot(μs, [rate(μ, VAs[1], 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"V_A=0.2", color=colors[1], dpi=600, linewidth=2.0)
     for i=2:5
-        plot!(p, μs, [rate(μ, VAs[i], 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"V_A=%$(VAs[i])", color=colors[i])
+        plot!(p, μs, [rate(μ, VAs[i], 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"V_A=%$(VAs[i])", color=colors[i], dpi=600, linewidth=2.0)
     end
     for i=1:5
         #plot!(p, μs, [rate(μ, VAs[i], 0.0, 0.0, 0.0, 0.0)/(1 + μ^2) for μ in μs], linestyle=:dash, label="", color=colors[i])
-        plot!(p, μs, [upstream_drift(μ, VAs[i]) for μ in μs], linestyle=:dash, label="", color=colors[i])
+        plot!(p, μs, [upstream_drift(μ, VAs[i]) for μ in μs], linestyle=:dash, label="", color=colors[i], dpi=600, linewidth=2.0)
     end
 
     xlabel!(p, L"\mu")
@@ -132,8 +132,8 @@ function plot_lambda()
     println(ls2)
     p1 = heatmap(αs, βs, λ1s, clim=(-0.75, 1.0))
     p2 = heatmap(αs, βs, λ2s, clim=(-0.75, 1.0))
-    p3 = contour(αs, βs, λ1s, levels=[0.0])
-    p4 = contour(αs, βs, λ2s, levels=[0.0])
+    contour!(p1, αs, βs, λ1s, levels=[0.0], c=:white)
+    contour!(p2, αs, βs, λ2s, levels=[0.0], c=:white)
     # p1 = contour(αs, βs, λ1s, aspect_ratio = :equal, clabels=true, color=:darkrainbow, levels=ls1)
     # p2 = contour(αs, βs, λ2s, aspect_ratio = :equal, clabels=true, color=:darkrainbow, levels=ls2)
     #p3 = contour(αs, βs, fs, aspect_ratio = :equal, clabels=true, color=:darkrainbow, levels=5)

@@ -1,7 +1,7 @@
 
 
 
-function only_tension_fieldlines()
+function only_tension_fieldlines(name, w)
 
     Ks = [-1.0, 0.0, 1.0]
     pts1 = [(x, 1 - Ks[1]/3 * x^2) for x in LinRange(-0.6, 0.6, 10)]
@@ -9,7 +9,7 @@ function only_tension_fieldlines()
     pts3 = [(x, 1 - Ks[3]/3 * x^2) for x in LinRange(-0.6, 0.6, 10)]
     crv_stl = S(:strokeDasharray => 3, :stroke => :red)
 
-    Sblue = S(:stroke=>:blue)
+    Sblue = S(:fill=>:blue)
 
     crv = Curve(pts1, stl=crv_stl)
     crv += Curve(pts2, stl=crv_stl)
@@ -18,25 +18,25 @@ function only_tension_fieldlines()
     rs = [0.2, 0.4, 0.6, 0.8, 1.0]
     μ = 0.6
     Δx = 1.0 / μ
-    par = Curve([(x, rs[1] + 0.25*μ^2*x^2/rs[1]) for x in LinRange(-Δx, Δx, 100)], stl=Sblue)
-    par += Curve([(x, rs[2] + 0.25*μ^2*x^2/rs[2]) for x in LinRange(-Δx, Δx, 100)], stl=Sblue)
-    par += Curve([(x, rs[3] + 0.25*μ^2*x^2/rs[3]) for x in LinRange(-Δx, Δx, 100)], stl=Sblue)
-    par += Curve([(x, rs[4] + 0.25*μ^2*x^2/rs[4]) for x in LinRange(-Δx, Δx, 100)], stl=Sblue)
-    par += Curve([(x, rs[5] + 0.25*μ^2*x^2/rs[5]) for x in LinRange(-Δx, Δx, 100)], stl=Sblue)
+    par = Curve2([(x, rs[1] + 0.25*μ^2*x^2/rs[1]) for x in LinRange(-Δx, Δx, 100)], ws=w, stl=Sblue)
+    # par += Curve2([(x, rs[2] + 0.25*μ^2*x^2/rs[2]) for x in LinRange(-Δx, Δx, 100)], ws=w, stl=Sblue)
+    # par += Curve2([(x, rs[3] + 0.25*μ^2*x^2/rs[3]) for x in LinRange(-Δx, Δx, 100)], ws=w, stl=Sblue)
+    # par += Curve2([(x, rs[4] + 0.25*μ^2*x^2/rs[4]) for x in LinRange(-Δx, Δx, 100)], ws=w, stl=Sblue)
+    # par += Curve2([(x, rs[5] + 0.25*μ^2*x^2/rs[5]) for x in LinRange(-Δx, Δx, 100)], ws=w, stl=Sblue)
 
     sep = S(:strokeDasharray => 7) * Line([0.0, Δx], [0.0, 1.0])
     sep += S(:strokeDasharray => 7) * Line([0.0, -Δx], [0.0, 1.0])
 
-    crc = Curve([(rs[1]*cos(θ), rs[1]*sin(θ)) for θ in LinRange(0, 2*π, 100)], stl=Sblue)
-    crc += Curve([(rs[2]*cos(θ), rs[2]*sin(θ)) for θ in LinRange(0, 2*π, 100)], stl=Sblue)
-    crc += Curve([(rs[3]*cos(θ), rs[3]*sin(θ)) for θ in LinRange(0, 2*π, 100)], stl=Sblue)
-    crc += Curve([(rs[4]*cos(θ), rs[4]*sin(θ)) for θ in LinRange(0, 2*π, 100)], stl=Sblue)
-    crc += Curve([(rs[5]*cos(θ), rs[5]*sin(θ)) for θ in LinRange(0, 2*π, 100)], stl=Sblue)
+    crc = Curve2([(rs[1]*cos(θ), rs[1]*sin(θ)) for θ in LinRange(0, 2*π, 100)], ws=w, stl=Sblue)
+    crc += Curve2([(rs[2]*cos(θ), rs[2]*sin(θ)) for θ in LinRange(0, 2*π, 100)], ws=w, stl=Sblue)
+    crc += Curve2([(rs[3]*cos(θ), rs[3]*sin(θ)) for θ in LinRange(0, 2*π, 100)], ws=w, stl=Sblue)
+    crc += Curve2([(rs[4]*cos(θ), rs[4]*sin(θ)) for θ in LinRange(0, 2*π, 100)], ws=w, stl=Sblue)
+    crc += Curve2([(rs[5]*cos(θ), rs[5]*sin(θ)) for θ in LinRange(0, 2*π, 100)], ws=w, stl=Sblue)
 
     fig1 = crc 
-    fig2 = par #+ sep
+    fig2 = par + sep
     output = fig1 + T(2*Δx + 0.5, -0.5) * fig2
-    savefig(output, filename="tension_fl_only_no_separatrix.png", height=5000, directory=rpath)
+    savefig(output, filename=name, height=5000, directory=rpath)
     return draw(output)
 
 end

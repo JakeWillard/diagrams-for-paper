@@ -22,6 +22,17 @@ function ζ(c::Curve)
     return output
 end
 
+struct Curve2 <: Mark
+    pts :: Vector{Tuple{Float64, Float64}}
+    ws :: Float64
+    stl :: S
+end
+Curve2(pts; ws=0.1, stl=S()) = Curve2(pts, ws, stl)
+
+function ζ(c::Curve2)
+
+    return c.stl * Trail(c.pts, c.ws)
+end
 
 # =====================================================
 
