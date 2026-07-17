@@ -4,6 +4,9 @@
 function outflow_speed(mu, VA, a2, S, K, Q)
 
     C = (1 - mu^2 - K/6 - (Q/4)*(1 - mu^4))*(1 + 2*a2/3 - S/6)
+    if mu == 1
+        return 0.0
+    end
     if VA == 1
         return 1.0
     else

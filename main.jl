@@ -16,7 +16,13 @@ include("./formulas.jl")
 # include("./diagrams.jl")
 include("./plots.jl")
 
+plot_difference()
 
+
+plot_rate(1.0)
+
+
+plot_lambda()
 savefig(plot_lambda(), rpath*"lambda.png")
 
 

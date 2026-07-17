@@ -9,18 +9,23 @@ function plot_rate(VA)
     C_pos = [0.0, 0.1, 0.2, 0.3, 0.4]
     C_all = [-0.4, -0.2, 0.0, 0.2, 0.4]
 
-    pa = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[1])", dpi=600, linewidth=2.0, legend=:topleft)
+    xtf = 10.0
+    xgf = 15.0
+    ytf = 10.0
+    ygf = 15.0
+
+    pa = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     for i=2:5
-        plot!(pa, μs, [rate(μ, VA, C_pos[i], 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[i])", dpi=600, linewidth=2.0, legend=:topleft)
+        plot!(pa, μs, [rate(μ, VA, C_pos[i], 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[i])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     end
     
-    pS = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft)
-    pK = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft)
-    pQ = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{Q}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft)
+    pS = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+    pK = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+    pQ = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{Q}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     for i=2:5
-        plot!(pS, μs, [rate(μ, VA, 0.0, C_all[i], 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft)
-        plot!(pK, μs, [rate(μ, VA, 0.0, 0.0, C_all[i], 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft)
-        plot!(pQ, μs, [rate(μ, VA, 0.0, 0.0, 0.0, C_all[i]) for μ in μs], label=L"\bar{Q}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft)
+        plot!(pS, μs, [rate(μ, VA, 0.0, C_all[i], 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+        plot!(pK, μs, [rate(μ, VA, 0.0, 0.0, C_all[i], 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+        plot!(pQ, μs, [rate(μ, VA, 0.0, 0.0, 0.0, C_all[i]) for μ in μs], label=L"\bar{Q}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     end
 
     for p in [pa, pS, pK, pQ]
@@ -48,13 +53,18 @@ function plot_difference()
     VAs = [0.2, 0.4, 0.6, 0.8, 1.0]
     colors = [:blue, :red, :green, :black, :purple]
 
-    p = plot(μs, [rate(μ, VAs[1], 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"V_A=0.2", color=colors[1], dpi=600, linewidth=2.0)
+    xtf = 10.0
+    xgf = 15.0
+    ytf = 10.0
+    ygf = 15.0
+
+    p = plot(μs, [rate(μ, VAs[1], 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"V_A=0.2", color=colors[1], dpi=600, linewidth=2.0, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     for i=2:5
-        plot!(p, μs, [rate(μ, VAs[i], 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"V_A=%$(VAs[i])", color=colors[i], dpi=600, linewidth=2.0)
+        plot!(p, μs, [rate(μ, VAs[i], 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"V_A=%$(VAs[i])", color=colors[i], dpi=600, linewidth=2.0, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     end
     for i=1:5
         #plot!(p, μs, [rate(μ, VAs[i], 0.0, 0.0, 0.0, 0.0)/(1 + μ^2) for μ in μs], linestyle=:dash, label="", color=colors[i])
-        plot!(p, μs, [upstream_drift(μ, VAs[i]) for μ in μs], linestyle=:dash, label="", color=colors[i], dpi=600, linewidth=2.0)
+        plot!(p, μs, [upstream_drift(μ, VAs[i]) for μ in μs], linestyle=:dash, label="", color=colors[i], dpi=600, linewidth=2.0, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     end
 
     xlabel!(p, L"\mu")
@@ -109,14 +119,15 @@ end
 function plot_lambda()
 
     ϵ = 0.3
-    αs = LinRange(0-ϵ, π+ϵ, 100)
-    βs = LinRange(0-ϵ, π+ϵ, 100)
-    λ1s = zeros(100, 100)
-    λ2s = zeros(100, 100)
-    fs = zeros(100, 100)
+    N = 500
+    αs = LinRange(0-ϵ, π+ϵ, N)
+    βs = LinRange(0-ϵ, π+ϵ, N)
+    λ1s = zeros(N, N)
+    λ2s = zeros(N, N)
+    fs = zeros(N, N)
 
-    for i=1:100
-        for j=1:100
+    for i=1:N
+        for j=1:N
             λ1s[j,i] = 1.01111 - 1.61666*cos(αs[i])^2 - 1.41666*sin(αs[i])^2 * cos(βs[j])^2
             λ2s[j,i] = 0.58333 - cos(αs[i])^2 - 0.75*sin(αs[i])^2 * cos(βs[j])^2
             fs[j,i] = 1 - 2*cos(αs[i])^2 - sin(αs[i])^2 * cos(βs[j])^2
@@ -128,12 +139,14 @@ function plot_lambda()
     ls1 = [round(x, sigdigits=2) for x in LinRange(minimum(λ1s), maximum(λ2s), 10)]
     ls2 = [round(x, sigdigits=2) for x in LinRange(minimum(λ2s), maximum(λ2s), 10)]
 
-    println(ls1)
-    println(ls2)
-    p1 = heatmap(αs, βs, λ1s, clim=(-0.75, 1.0))
-    p2 = heatmap(αs, βs, λ2s, clim=(-0.75, 1.0))
-    contour!(p1, αs, βs, λ1s, levels=[0.0], c=:white)
-    contour!(p2, αs, βs, λ2s, levels=[0.0], c=:white)
+    xtf = 10.0
+    xgf = 15.0
+    ytf = 10.0
+    ygf = 15.0
+    p1 = heatmap(αs, βs, λ1s, clim=(-1.0, 1.0), color=:seismic, dpi=600, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+    p2 = heatmap(αs, βs, λ2s, clim=(-1.0, 1.0), color=:seismic, dpi=600, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+    #contour!(p1, αs, βs, λ1s, levels=[0.0], c=:white)
+    #contour!(p2, αs, βs, λ2s, levels=[0.0], c=:white)
     # p1 = contour(αs, βs, λ1s, aspect_ratio = :equal, clabels=true, color=:darkrainbow, levels=ls1)
     # p2 = contour(αs, βs, λ2s, aspect_ratio = :equal, clabels=true, color=:darkrainbow, levels=ls2)
     #p3 = contour(αs, βs, fs, aspect_ratio = :equal, clabels=true, color=:darkrainbow, levels=5)
@@ -141,11 +154,11 @@ function plot_lambda()
     # p2 = contour(αs, βs, λ1s, clabels=true, cbar=false, color=:darkrainbow, levels=[-1.0, -0.5, 0.0, 0.5])
     #scatter!(p, [π/2], [π/2], legend=false)
     #annotate!(p, π/2, π/2, ("  1.0", 8, :black, :left))
-    title!(p1, L"\lambda / \bar{\kappa}" * " for " * L"V_A \ll 1")
-    xlabel!(p1, L"\alpha")
-    ylabel!(p1, L"\beta")
+    #title!(p1, L"\lambda / \bar{\kappa}" * " for " * L"V_A \ll 1")
+    xlabel!(p1, L"\alpha", fontsize=2.0)
+    ylabel!(p1, L"\beta", fontsize=2.0)
 
-    title!(p2, L"\lambda / \bar{\kappa}" * " as " * L"V_A \rightarrow 1")
+    #title!(p2, L"\lambda / \bar{\kappa}" * " as " * L"V_A \rightarrow 1")
     xlabel!(p2, L"\alpha")
     ylabel!(p2, L"\beta")
 
