@@ -19,7 +19,7 @@ include("./plots.jl")
 plot_difference()
 
 
-plot_rate(1.0)
+plot_rate(0.99)
 
 
 plot_lambda()
@@ -28,7 +28,7 @@ savefig(plot_lambda(), rpath*"lambda.png")
 
 
 plot_rate(0.3)
-savefig(plot_rate(1.0), rpath*"rates.png")
+savefig(plot_rate(0.99), rpath*"rates.png")
 
 savefig(plot_difference(), rpath*"thick_difference.png")
 

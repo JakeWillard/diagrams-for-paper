@@ -14,14 +14,14 @@ function plot_rate(VA)
     ytf = 10.0
     ygf = 15.0
 
-    pa = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+    pa = plot(μs, [rate(μ, VA, C_pos[1], 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     for i=2:5
         plot!(pa, μs, [rate(μ, VA, C_pos[i], 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{a}^2=%$(C_pos[i])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     end
     
-    pS = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
-    pK = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
-    pQ = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, 0.0) for μ in μs], label=L"\bar{Q}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+    pS = plot(μs, [rate(μ, VA, 0.0, C_all[1], 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+    pK = plot(μs, [rate(μ, VA, 0.0, 0.0, C_all[1], 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
+    pQ = plot(μs, [rate(μ, VA, 0.0, 0.0, 0.0, C_all[1]) for μ in μs], label=L"\bar{Q}=%$(C_all[1])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
     for i=2:5
         plot!(pS, μs, [rate(μ, VA, 0.0, C_all[i], 0.0, 0.0) for μ in μs], label=L"\bar{S}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
         plot!(pK, μs, [rate(μ, VA, 0.0, 0.0, C_all[i], 0.0) for μ in μs], label=L"\mathcal{\bar{K}}=%$(C_all[i])", dpi=600, linewidth=2.0, legend=:topleft, xtickfontsize=xtf, xguidefontsize=xgf, ytickfontsize=ytf, yguidefontsize=ygf)
